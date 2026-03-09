@@ -1,0 +1,78 @@
+{
+  "common": {
+    "appName": "LinkClaw",
+    "tagline": "AI Event Matching Platform",
+    "login": "Login",
+    "register": "Sign Up",
+    "logout": "Logout",
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "loading": "Loading...",
+    "guest": "Guest",
+    "organizer": "Organizer"
+  },
+  "home": {
+    "title": "Discover Events Made for You",
+    "subtitle": "AI-powered matching between events and guests"
+  },
+  "auth": {
+    "loginTitle": "Login to LinkClaw",
+    "registerTitle": "Sign Up for LinkClaw",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "selectRole": "Choose Your Role",
+    "guestDesc": "Discover and attend events that match your interests",
+    "organizerDesc": "Host events and find the perfect guests",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "loginAction": "Login Now",
+    "registerAction": "Sign Up Now"
+  },
+  "profile": {
+    "title": "Profile",
+    "displayName": "Display Name",
+    "bio": "About You",
+    "bioPlaceholder": "Describe your background, industry experience, and interests...",
+    "industry": "Industry",
+    "city": "City",
+    "saveSuccess": "Profile saved"
+  },
+  "events": {
+    "title": "Events",
+    "create": "Create Event",
+    "eventTitle": "Event Title",
+    "description": "Description",
+    "targetAudience": "Target Audience",
+    "targetAudiencePlaceholder": "Describe your ideal attendees...",
+    "eventDate": "Date",
+    "location": "Location",
+    "maxGuests": "Max Guests",
+    "status": "Status",
+    "draft": "Draft",
+    "published": "Published",
+    "closed": "Closed",
+    "apply": "Register",
+    "applied": "Registered",
+    "full": "Full",
+    "manage": "Manage"
+  },
+  "recommendation": {
+    "title": "AI Recommendations",
+    "reason": "Why this match",
+    "matchScore": "Match Score",
+    "unavailable": "AI recommendations temporarily unavailable",
+    "refresh": "Refresh",
+    "recommendedGuests": "Recommended Guests"
+  },
+  "myEvents": {
+    "title": "My Events",
+    "registered": "Registered",
+    "published": "Published",
+    "invited": "Invitations",
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "rejected": "Rejected"
+  }
+}

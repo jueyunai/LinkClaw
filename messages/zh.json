@@ -1,0 +1,78 @@
+{
+  "common": {
+    "appName": "LinkClaw",
+    "tagline": "AI 活动智能匹配平台",
+    "login": "登录",
+    "register": "注册",
+    "logout": "退出登录",
+    "save": "保存",
+    "cancel": "取消",
+    "submit": "提交",
+    "loading": "加载中...",
+    "guest": "嘉宾",
+    "organizer": "主办方"
+  },
+  "home": {
+    "title": "发现最适合你的活动",
+    "subtitle": "AI 智能匹配，连接活动与嘉宾"
+  },
+  "auth": {
+    "loginTitle": "登录 LinkClaw",
+    "registerTitle": "注册 LinkClaw",
+    "email": "邮箱",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "selectRole": "选择你的角色",
+    "guestDesc": "发现并参加感兴趣的活动",
+    "organizerDesc": "发布活动并找到理想嘉宾",
+    "noAccount": "还没有账号？",
+    "hasAccount": "已有账号？",
+    "loginAction": "立即登录",
+    "registerAction": "立即注册"
+  },
+  "profile": {
+    "title": "个人画像",
+    "displayName": "显示名称",
+    "bio": "自我介绍",
+    "bioPlaceholder": "用自然语言描述你的背景、行业经验和兴趣方向...",
+    "industry": "所在行业",
+    "city": "所在城市",
+    "saveSuccess": "画像已保存"
+  },
+  "events": {
+    "title": "活动列表",
+    "create": "发布活动",
+    "eventTitle": "活动标题",
+    "description": "活动描述",
+    "targetAudience": "目标嘉宾画像",
+    "targetAudiencePlaceholder": "描述你理想的参会嘉宾...",
+    "eventDate": "活动时间",
+    "location": "活动地点",
+    "maxGuests": "人数上限",
+    "status": "状态",
+    "draft": "草稿",
+    "published": "已发布",
+    "closed": "已结束",
+    "apply": "报名参加",
+    "applied": "已报名",
+    "full": "已满员",
+    "manage": "管理活动"
+  },
+  "recommendation": {
+    "title": "AI 为你推荐",
+    "reason": "推荐理由",
+    "matchScore": "匹配度",
+    "unavailable": "AI 推荐暂时不可用",
+    "refresh": "刷新推荐",
+    "recommendedGuests": "推荐嘉宾"
+  },
+  "myEvents": {
+    "title": "我的活动",
+    "registered": "已报名",
+    "published": "已发布",
+    "invited": "收到邀请",
+    "pending": "待处理",
+    "accepted": "已接受",
+    "rejected": "已拒绝"
+  }
+}
