@@ -14,7 +14,8 @@
   },
   "home": {
     "title": "Discover Events Made for You",
-    "subtitle": "AI-powered matching between events and guests"
+    "subtitle": "AI-powered matching between events and guests",
+    "liveBoard": "LinkClaw Live Board"
   },
   "auth": {
     "loginTitle": "Login to LinkClaw",
@@ -37,7 +38,11 @@
     "bioPlaceholder": "Describe your background, industry experience, and interests...",
     "industry": "Industry",
     "city": "City",
-    "saveSuccess": "Profile saved"
+    "saveSuccess": "Profile saved",
+    "organizerNameFallback": "Organizer",
+    "organizerProfile": "Organizer Profile",
+    "organizerRoleFallback": "Event organizer",
+    "organizerBioFallback": "This organizer is still working on their introduction."
   },
   "events": {
     "title": "Events",
@@ -56,7 +61,12 @@
     "apply": "Register",
     "applied": "Registered",
     "full": "Full",
-    "manage": "Manage"
+    "manage": "Manage",
+    "audience": "Audience",
+    "openAudience": "Open to matched guests",
+    "eventBadge": "LinkClaw Event",
+    "backToList": "Back to events",
+    "emptyPublished": "There are no published events yet. Create the first event to start building your guest pipeline."
   },
   "recommendation": {
     "title": "AI Recommendations",
@@ -64,15 +74,46 @@
     "matchScore": "Match Score",
     "unavailable": "AI recommendations temporarily unavailable",
     "refresh": "Refresh",
-    "recommendedGuests": "Recommended Guests"
+    "recommendedGuests": "Recommended Guests",
+    "mockLabel": "Mock AI",
+    "eventIntro": "Based on your profile, we prioritize the events most likely to match you.",
+    "reasonIndustry": "This event strongly matches your industry: {value}",
+    "reasonCity": "This event location matches your city: {value}",
+    "reasonAudience": "The target audience closely overlaps with your background",
+    "reasonKeywords": "This event shares profile keywords with you: {keywords}",
+    "reasonKeywordsSeparator": ", ",
+    "reasonFallback": "This event appears to be a potential match worth exploring",
+    "guestReasonIndustry": "This guest's industry strongly matches the event theme: {value}",
+    "guestReasonCity": "This guest's city aligns well with the event location: {value}",
+    "guestReasonBio": "This guest's background closely overlaps with the target audience",
+    "guestReasonKeywords": "This guest profile shares keywords with the event needs: {keywords}",
+    "guestReasonFallback": "This guest appears to be a potential fit worth reaching out to"
   },
   "myEvents": {
     "title": "My Events",
+    "organizerConsole": "Organizer Console",
+    "guestCenter": "Guest Center",
     "registered": "Registered",
     "published": "Published",
     "invited": "Invitations",
     "pending": "Pending",
     "accepted": "Accepted",
-    "rejected": "Rejected"
+    "rejected": "Rejected",
+    "statusUpdated": "Event status updated",
+    "emptyOrganizer": "You haven't created any events yet. Publish your first event, then keep refining the event details and invitation flow.",
+    "invitationAccepted": "Invitation accepted",
+    "invitationRejected": "Invitation rejected",
+    "registeredIntro": "Review the events you've registered for and their current status.",
+    "invitedIntro": "Review and respond to invitations from organizers.",
+    "emptyRegistered": "You haven't registered for any events yet.",
+    "emptyInvited": "There are no new invitations right now.",
+    "viewEvent": "View event",
+    "manageEvent": "Event Management",
+    "manageEventIntro": "Review AI-recommended guests and track the invitations you've sent.",
+    "invitationPipeline": "Invitation Pipeline",
+    "emptyInvitationPipeline": "You haven't invited any guests yet.",
+    "invitationSent": "Invitation sent",
+    "inviteGuest": "Send invitation",
+    "emptyRecommendedGuests": "There are no new recommended guests right now."
   }
 }

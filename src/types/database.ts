@@ -56,26 +56,45 @@ export interface Database {
     Tables: {
       profiles: {
         Row: Profile;
-        Insert: Omit<Profile, "created_at" | "updated_at">;
-        Update: Partial<Omit<Profile, "id" | "created_at" | "updated_at">>;
+        Insert: Omit<Profile, 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<Profile, 'id' | 'created_at' | 'updated_at'>>;
+        Relationships: [];
       };
       events: {
         Row: Event;
-        Insert: Omit<Event, "id" | "created_at" | "updated_at">;
-        Update: Partial<Omit<Event, "id" | "organizer_id" | "created_at" | "updated_at">>;
+        Insert: Omit<Event, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<
+          Omit<Event, 'id' | 'organizer_id' | 'created_at' | 'updated_at'>
+        >;
+        Relationships: [];
       };
       registrations: {
         Row: Registration;
-        Insert: Omit<Registration, "id" | "created_at" | "updated_at">;
+        Insert: Omit<Registration, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<
-          Omit<Registration, "id" | "event_id" | "guest_id" | "type" | "created_at" | "updated_at">
+          Omit<
+            Registration,
+            'id' | 'event_id' | 'guest_id' | 'type' | 'created_at' | 'updated_at'
+          >
         >;
+        Relationships: [];
       };
       ai_recommendations: {
         Row: AiRecommendation;
-        Insert: Omit<AiRecommendation, "id" | "created_at">;
-        Update: Partial<Omit<AiRecommendation, "id" | "created_at">>;
+        Insert: Omit<AiRecommendation, 'id' | 'created_at'>;
+        Update: Partial<Omit<AiRecommendation, 'id' | 'created_at'>>;
+        Relationships: [];
       };
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: {
+      user_role: UserRole;
+      event_status: EventStatus;
+      registration_type: RegistrationType;
+      registration_status: RegistrationStatus;
+      recommendation_target: 'guest' | 'event';
+    };
+    CompositeTypes: Record<string, never>;
   };
 }

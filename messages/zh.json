@@ -14,7 +14,8 @@
   },
   "home": {
     "title": "发现最适合你的活动",
-    "subtitle": "AI 智能匹配，连接活动与嘉宾"
+    "subtitle": "AI 智能匹配，连接活动与嘉宾",
+    "liveBoard": "LinkClaw 实时活动板"
   },
   "auth": {
     "loginTitle": "登录 LinkClaw",
@@ -37,7 +38,11 @@
     "bioPlaceholder": "用自然语言描述你的背景、行业经验和兴趣方向...",
     "industry": "所在行业",
     "city": "所在城市",
-    "saveSuccess": "画像已保存"
+    "saveSuccess": "画像已保存",
+    "organizerNameFallback": "主办方",
+    "organizerProfile": "主办方画像",
+    "organizerRoleFallback": "活动主办方",
+    "organizerBioFallback": "这位主办方正在完善个人介绍。"
   },
   "events": {
     "title": "活动列表",
@@ -56,7 +61,12 @@
     "apply": "报名参加",
     "applied": "已报名",
     "full": "已满员",
-    "manage": "管理活动"
+    "manage": "管理活动",
+    "audience": "适合人群",
+    "openAudience": "向匹配嘉宾开放",
+    "eventBadge": "LinkClaw 活动",
+    "backToList": "返回活动列表",
+    "emptyPublished": "当前还没有已发布活动。你可以先创建第一场活动，建立面向目标嘉宾的邀请池。"
   },
   "recommendation": {
     "title": "AI 为你推荐",
@@ -64,15 +74,46 @@
     "matchScore": "匹配度",
     "unavailable": "AI 推荐暂时不可用",
     "refresh": "刷新推荐",
-    "recommendedGuests": "推荐嘉宾"
+    "recommendedGuests": "推荐嘉宾",
+    "mockLabel": "模拟 AI",
+    "eventIntro": "根据你的画像信息，优先挑选最可能匹配的活动。",
+    "reasonIndustry": "活动内容与你的行业“{value}”高度相关",
+    "reasonCity": "活动地点与所在城市“{value}”匹配",
+    "reasonAudience": "目标嘉宾画像与你的背景描述存在明显重合",
+    "reasonKeywords": "活动信息与你的个人画像共享关键词：{keywords}",
+    "reasonKeywordsSeparator": "、",
+    "reasonFallback": "该活动与你的画像存在潜在匹配，可作为探索候选",
+    "guestReasonIndustry": "嘉宾所属行业“{value}”与活动主题高度相关",
+    "guestReasonCity": "嘉宾所在城市“{value}”与活动地点较为匹配",
+    "guestReasonBio": "嘉宾的背景描述与活动目标画像存在明显重合",
+    "guestReasonKeywords": "嘉宾画像与活动需求共享关键词：{keywords}",
+    "guestReasonFallback": "该嘉宾与活动画像存在潜在匹配，建议进一步沟通"
   },
   "myEvents": {
     "title": "我的活动",
+    "organizerConsole": "主办方控制台",
+    "guestCenter": "嘉宾中心",
     "registered": "已报名",
     "published": "已发布",
     "invited": "收到邀请",
     "pending": "待处理",
     "accepted": "已接受",
-    "rejected": "已拒绝"
+    "rejected": "已拒绝",
+    "statusUpdated": "活动状态已更新",
+    "emptyOrganizer": "你还没有创建活动。先发布第一场活动，再逐步完善活动详情与邀请流程。",
+    "invitationAccepted": "邀请已接受",
+    "invitationRejected": "邀请已拒绝",
+    "registeredIntro": "已报名活动与当前处理状态。",
+    "invitedIntro": "查看并响应主办方发来的邀请。",
+    "emptyRegistered": "你还没有报名任何活动。",
+    "emptyInvited": "暂时没有新的邀请。",
+    "viewEvent": "查看活动",
+    "manageEvent": "活动管理",
+    "manageEventIntro": "查看 AI 推荐嘉宾并跟进已发送邀请。",
+    "invitationPipeline": "邀请进度",
+    "emptyInvitationPipeline": "你还没有向任何嘉宾发出邀请。",
+    "invitationSent": "邀请已发送",
+    "inviteGuest": "发送邀请",
+    "emptyRecommendedGuests": "当前暂无新的推荐嘉宾。"
   }
 }

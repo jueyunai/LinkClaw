@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
 import { LocaleSwitcher } from './locale-switcher';
 import { logout } from '@/app/[locale]/auth/actions';
+import type { UserRole } from '@/types/database';
 
 export async function Navbar() {
   const supabase = await createClient();
@@ -11,7 +12,7 @@ export async function Navbar() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  let profile: { role: string; display_name: string } | null = null;
+  let profile: { role: UserRole; display_name: string } | null = null;
 
   if (user) {
     const { data } = await supabase
@@ -20,7 +21,7 @@ export async function Navbar() {
       .eq('id', user.id)
       .single();
 
-    profile = data;
+    profile = data as { role: UserRole; display_name: string } | null;
   }
 
   return <NavbarContent user={user} profile={profile} />;
@@ -31,7 +32,7 @@ function NavbarContent({
   profile,
 }: {
   user: { id: string } | null;
-  profile: { role: string; display_name: string } | null;
+  profile: { role: UserRole; display_name: string } | null;
 }) {
   const t = useTranslations('common');
 
