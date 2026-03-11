@@ -13,6 +13,10 @@ import {
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { inviteGuest } from '@/app/[locale]/registrations/actions';
+import { updateEvent, updateEventStatus } from '@/app/[locale]/events/actions';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   getMockRecommendedGuestsForEvent,
   type MockGuestRecommendation,
@@ -31,6 +35,22 @@ const registrationStatusVariantMap: Record<RegistrationStatus, 'secondary' | 'de
   accepted: 'default',
   rejected: 'destructive',
 };
+
+function formatDateTimeLocal(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  const hours = `${date.getHours()}`.padStart(2, '0');
+  const minutes = `${date.getMinutes()}`.padStart(2, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
 
 interface ManageEventPageProps {
   params: Promise<{ locale: string; id: string }>;
@@ -168,7 +188,7 @@ export default async function ManageEventPage({ params, searchParams }: ManageEv
   );
 }
 
-function ManageEventContent({
+export function ManageEventContent({
   event,
   recommendedGuests,
   invitedGuests,
@@ -230,6 +250,9 @@ function ManageEventContent({
     hour: '2-digit',
     minute: '2-digit',
   }).format(new Date(event.event_date));
+  const eventDateValue = formatDateTimeLocal(event.event_date);
+  const canPublish = event.status === 'draft' || event.status === 'closed';
+  const canUnpublish = event.status === 'published';
 
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-background via-background to-muted/20">
@@ -260,6 +283,30 @@ function ManageEventContent({
             </div>
           ) : null}
 
+          {success === 'draft_saved' ? (
+            <div className="rounded-lg bg-primary/10 px-4 py-3 text-sm text-primary">
+              {tEvents('draftSaved')}
+            </div>
+          ) : null}
+
+          {success === 'updated' ? (
+            <div className="rounded-lg bg-primary/10 px-4 py-3 text-sm text-primary">
+              {tEvents('eventUpdated')}
+            </div>
+          ) : null}
+
+          {success === 'published' || success === 'republished' ? (
+            <div className="rounded-lg bg-primary/10 px-4 py-3 text-sm text-primary">
+              {tEvents('eventPublished')}
+            </div>
+          ) : null}
+
+          {success === 'closed' ? (
+            <div className="rounded-lg bg-primary/10 px-4 py-3 text-sm text-primary">
+              {tEvents('eventClosed')}
+            </div>
+          ) : null}
+
           <Card className="border-border/60 bg-card/85 shadow-sm">
             <CardHeader className="gap-4 md:flex-row md:items-start md:justify-between">
               <div className="space-y-2">
@@ -273,17 +320,90 @@ function ManageEventContent({
                   <span>{tEvents('maxGuests')} · {event.max_guests}</span>
                 </CardDescription>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm leading-7 text-muted-foreground">{event.description}</p>
-              <div className="rounded-2xl border border-border/60 bg-muted/25 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                  {tEvents('targetAudience')}
-                </p>
-                <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-foreground/90">
-                  {event.target_audience || tEvents('targetAudiencePlaceholder')}
-                </p>
+              <div className="flex flex-wrap gap-2">
+                {canPublish ? (
+                  <form action={updateEventStatus}>
+                    <input type="hidden" name="eventId" value={event.id} />
+                    <input type="hidden" name="status" value="published" />
+                    <input type="hidden" name="returnTo" value="manage" />
+                    <Button type="submit">{event.status === 'closed' ? tEvents('republish') : tEvents('publish')}</Button>
+                  </form>
+                ) : null}
+                {canUnpublish ? (
+                  <form action={updateEventStatus}>
+                    <input type="hidden" name="eventId" value={event.id} />
+                    <input type="hidden" name="status" value="closed" />
+                    <input type="hidden" name="returnTo" value="manage" />
+                    <Button type="submit" variant="outline">{tEvents('unpublish')}</Button>
+                  </form>
+                ) : null}
               </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <form action={updateEvent} className="space-y-4">
+                <input type="hidden" name="eventId" value={event.id} />
+                <div className="space-y-2">
+                  <Label htmlFor="title">{tEvents('eventTitle')}</Label>
+                  <Input id="title" name="title" defaultValue={event.title} required />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">{tEvents('description')}</Label>
+                  <Textarea
+                    id="description"
+                    name="description"
+                    defaultValue={event.description}
+                    className="min-h-36"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="targetAudience">{tEvents('targetAudience')}</Label>
+                  <Textarea
+                    id="targetAudience"
+                    name="targetAudience"
+                    defaultValue={event.target_audience ?? ''}
+                    placeholder={tEvents('targetAudiencePlaceholder')}
+                    className="min-h-28"
+                  />
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="eventDate">{tEvents('eventDate')}</Label>
+                    <Input
+                      id="eventDate"
+                      name="eventDate"
+                      type="datetime-local"
+                      defaultValue={eventDateValue}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="location">{tEvents('location')}</Label>
+                    <Input id="location" name="location" defaultValue={event.location} required />
+                  </div>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="maxGuests">{tEvents('maxGuests')}</Label>
+                    <Input
+                      id="maxGuests"
+                      name="maxGuests"
+                      type="number"
+                      min={1}
+                      defaultValue={event.max_guests}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <Button type="submit">{tEvents('saveChanges')}</Button>
+                </div>
+              </form>
             </CardContent>
           </Card>
 
@@ -348,7 +468,7 @@ function ManageEventContent({
                               {tMyEvents('inviteGuest')}
                             </Button>
                             {event.status !== 'published' ? (
-                              <p className="text-xs text-muted-foreground">{tEvents('published')}</p>
+                              <p className="text-xs text-muted-foreground">{tEvents('publishedOnlyHint')}</p>
                             ) : null}
                           </form>
                         </CardContent>

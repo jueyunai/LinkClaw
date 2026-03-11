@@ -53,7 +53,6 @@ export default async function NewEventPage({
 
 function NewEventForm({ error }: { error?: string }) {
   const t = useTranslations('events');
-  const tc = useTranslations('common');
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-3xl items-center px-4 py-10">
@@ -105,23 +104,16 @@ function NewEventForm({ error }: { error?: string }) {
                 <Label htmlFor="maxGuests">{t('maxGuests')}</Label>
                 <Input id="maxGuests" name="maxGuests" type="number" min={1} defaultValue={20} required />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="status">{t('status')}</Label>
-                <select
-                  id="status"
-                  name="status"
-                  defaultValue="draft"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                >
-                  <option value="draft">{t('draft')}</option>
-                  <option value="published">{t('published')}</option>
-                </select>
-              </div>
             </div>
 
-            <Button type="submit" className="w-full">
-              {tc('submit')}
-            </Button>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button type="submit" name="intent" value="draft" variant="outline" className="flex-1">
+                {t('saveDraft')}
+              </Button>
+              <Button type="submit" name="intent" value="publish" className="flex-1">
+                {t('publishNow')}
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>

@@ -118,9 +118,11 @@ function HomeContent({
               {tHome('subtitle')}
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <Link href="/events/new">
-                <Button>{tEvents('create')}</Button>
-              </Link>
+              {userRole === 'organizer' ? (
+                <Link href="/events/new">
+                  <Button>{tEvents('create')}</Button>
+                </Link>
+              ) : null}
               <div className="rounded-full border border-border/70 bg-background/70 px-4 py-2 text-sm text-muted-foreground">
                 {events.length} {tEvents('published')}
               </div>
@@ -223,9 +225,11 @@ function HomeContent({
               {tEvents('emptyPublished')}
             </p>
             <div className="mt-6">
-              <Link href="/events/new">
-                <Button>{tEvents('create')}</Button>
-              </Link>
+              {userRole === 'organizer' ? (
+                <Link href="/events/new">
+                  <Button>{tEvents('create')}</Button>
+                </Link>
+              ) : null}
             </div>
           </div>
         )}

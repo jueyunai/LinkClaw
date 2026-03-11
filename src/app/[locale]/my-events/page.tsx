@@ -177,9 +177,21 @@ function OrganizerEventsContent({
           </div>
         ) : null}
 
-        {success === 'true' ? (
+        {success === 'published' || success === 'republished' ? (
           <div className="mb-4 rounded-lg bg-primary/10 px-4 py-3 text-sm text-primary">
-            {tMyEvents('statusUpdated')}
+            {tEvents('eventPublished')}
+          </div>
+        ) : null}
+
+        {success === 'closed' ? (
+          <div className="mb-4 rounded-lg bg-primary/10 px-4 py-3 text-sm text-primary">
+            {tEvents('eventClosed')}
+          </div>
+        ) : null}
+
+        {success === 'draft_saved' ? (
+          <div className="mb-4 rounded-lg bg-primary/10 px-4 py-3 text-sm text-primary">
+            {tEvents('draftSaved')}
           </div>
         ) : null}
 
@@ -215,19 +227,27 @@ function OrganizerEventsContent({
                     </Link>
                   </CardHeader>
                   <CardContent className="flex flex-wrap items-center gap-2 border-t bg-muted/20 py-4">
-                    {(['draft', 'published', 'closed'] as const).map((status) => (
-                      <form action={updateEventStatus} key={status}>
+                    {event.status !== 'published' ? (
+                      <form action={updateEventStatus}>
                         <input type="hidden" name="eventId" value={event.id} />
-                        <input type="hidden" name="status" value={status} />
-                        <Button
-                          type="submit"
-                          size="sm"
-                          variant={event.status === status ? 'default' : 'outline'}
-                        >
-                          {tEvents(status)}
+                        <input type="hidden" name="status" value="published" />
+                        <input type="hidden" name="returnTo" value="my-events" />
+                        <Button type="submit" size="sm" variant="outline">
+                          {event.status === 'closed' ? tEvents('republish') : tEvents('publish')}
                         </Button>
                       </form>
-                    ))}
+                    ) : null}
+
+                    {event.status === 'published' ? (
+                      <form action={updateEventStatus}>
+                        <input type="hidden" name="eventId" value={event.id} />
+                        <input type="hidden" name="status" value="closed" />
+                        <input type="hidden" name="returnTo" value="my-events" />
+                        <Button type="submit" size="sm" variant="outline">
+                          {tEvents('unpublish')}
+                        </Button>
+                      </form>
+                    ) : null}
                   </CardContent>
                 </Card>
               );
