@@ -295,7 +295,6 @@ function GuestEventsContent({
   error?: string;
   success?: string;
 }) {
-  const tEvents = useTranslations('events');
   const tMyEvents = useTranslations('myEvents');
 
   const applied = registrations.filter((item) => item.type === 'applied');

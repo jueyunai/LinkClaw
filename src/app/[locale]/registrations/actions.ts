@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation';
 import { getLocale } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
-import type { Database, RegistrationStatus, UserRole } from '@/types/database';
+import type { Database, UserRole } from '@/types/database';
 
 async function requireOrganizer(locale: string) {
   const supabase = await createClient();

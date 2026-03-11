@@ -1,3 +1,4 @@
+import { Link } from '@/i18n/navigation';
 import {
   Card,
   CardContent,
@@ -25,12 +26,12 @@ export default function GlobalNotFound() {
           </div>
         </CardHeader>
         <CardContent className="flex justify-center">
-          <a
-            href="/zh"
+          <Link
+            href="/"
             className="inline-flex h-8 items-center justify-center rounded-lg bg-primary px-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80"
           >
             返回首页 / Back home
-          </a>
+          </Link>
         </CardContent>
       </Card>
     </main>
