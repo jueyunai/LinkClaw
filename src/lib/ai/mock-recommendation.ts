@@ -1,4 +1,5 @@
 import type { Event, Profile } from '@/types/database';
+import { getAiRecommendationConfig } from '@/lib/ai/config';
 
 export interface MockRecommendation {
   eventId: string;
@@ -43,7 +44,7 @@ export function getMockEventRecommendations(
   events: Array<
     Pick<Event, 'id' | 'title' | 'description' | 'target_audience' | 'location' | 'status'>
   >,
-  limit = 3,
+  limit = getAiRecommendationConfig().defaultLimit,
 ): MockRecommendation[] {
   const industryTokens = tokenize(profile.industry);
   const cityTokens = tokenize(profile.city);
