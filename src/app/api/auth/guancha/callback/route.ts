@@ -16,6 +16,40 @@ const OAUTH_COOKIES = [
   'guancha_oauth_redirect',
 ] as const;
 
+async function ensureGuanchaIdentity(params: {
+  admin: ReturnType<typeof createAdminClient>;
+  userId: string;
+  guanchaUserId: number;
+}) {
+  const providerSubject = String(params.guanchaUserId);
+  const { data: existing, error: existingError } = await params.admin
+    .from('user_auth_identities')
+    .select('id')
+    .eq('provider', 'guancha')
+    .eq('provider_subject', providerSubject)
+    .maybeSingle();
+
+  if (existingError) {
+    console.error('查询观猹身份关联失败:', existingError);
+    return;
+  }
+
+  if (existing) {
+    return;
+  }
+
+  const { error: insertError } = await params.admin.from('user_auth_identities').insert({
+    user_id: params.userId,
+    provider: 'guancha',
+    provider_subject: providerSubject,
+    provider_email: null,
+  });
+
+  if (insertError) {
+    console.error('写入观猹身份关联失败:', insertError);
+  }
+}
+
 function buildLoginRedirect(origin: string, locale: string, error: string, redirectTo?: string) {
   const loginUrl = new URL(`/${locale}/auth/login`, origin);
   loginUrl.searchParams.set('error', error);
@@ -96,6 +130,12 @@ export async function GET(request: Request) {
         })
         .catch((err) => console.error('更新观猹用户元数据失败:', err));
 
+      await ensureGuanchaIdentity({
+        admin,
+        userId: signInData.user.id,
+        guanchaUserId: userInfo.user_id,
+      });
+
       return NextResponse.redirect(`${origin}${redirectTo}`);
     }
 
@@ -103,7 +143,7 @@ export async function GET(request: Request) {
     if (signInError) {
       const admin = createAdminClient();
 
-      const { error: createError } = await admin.auth.admin.createUser({
+      const { data: createData, error: createError } = await admin.auth.admin.createUser({
         email: syntheticEmail,
         password,
         email_confirm: true,
@@ -116,10 +156,16 @@ export async function GET(request: Request) {
         },
       });
 
-      if (createError) {
+      if (createError || !createData?.user) {
         console.error('创建观猹用户失败:', createError);
         return redirectWithError('auth.errors.providerNotReady');
       }
+
+      await ensureGuanchaIdentity({
+        admin,
+        userId: createData.user.id,
+        guanchaUserId: userInfo.user_id,
+      });
 
       // 创建成功后登录
       const { error: retryError } = await supabase.auth.signInWithPassword({
