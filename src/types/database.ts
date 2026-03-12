@@ -51,6 +51,15 @@ export interface AiRecommendation {
   created_at: string;
 }
 
+export interface UserAuthIdentity {
+  id: string;
+  user_id: string;
+  provider: string;
+  provider_subject: string;
+  provider_email: string | null;
+  linked_at: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -83,6 +92,12 @@ export interface Database {
         Row: AiRecommendation;
         Insert: Omit<AiRecommendation, 'id' | 'created_at'>;
         Update: Partial<Omit<AiRecommendation, 'id' | 'created_at'>>;
+        Relationships: [];
+      };
+      user_auth_identities: {
+        Row: UserAuthIdentity;
+        Insert: Omit<UserAuthIdentity, 'id' | 'linked_at'>;
+        Update: Partial<Omit<UserAuthIdentity, 'id' | 'user_id' | 'linked_at'>>;
         Relationships: [];
       };
     };

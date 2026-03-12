@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { getLocale } from 'next-intl/server';
+import { getAuthProvider, type AuthProviderId } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 
 function getLoginErrorMessage(message: string, locale: string) {
@@ -12,6 +13,33 @@ function getLoginErrorMessage(message: string, locale: string) {
   }
 
   return message;
+}
+
+function buildAuthErrorRedirectPath(locale: string, error: string, redirectTo?: string) {
+  const params = new URLSearchParams({
+    error,
+  });
+
+  if (redirectTo) {
+    params.set('redirect', redirectTo);
+  }
+
+  return `/${locale}/auth/login?${params.toString()}`;
+}
+
+export async function startAuth(providerId: AuthProviderId, redirectTo?: string) {
+  const locale = await getLocale();
+  const provider = getAuthProvider(providerId);
+
+  if (!provider) {
+    redirect(buildAuthErrorRedirectPath(locale, 'auth.errors.unsupportedProvider', redirectTo));
+  }
+
+  if (!provider.enabled) {
+    redirect(buildAuthErrorRedirectPath(locale, 'auth.errors.providerUnavailable', redirectTo));
+  }
+
+  redirect(buildAuthErrorRedirectPath(locale, 'auth.errors.providerNotReady', redirectTo));
 }
 
 export async function login(formData: FormData) {

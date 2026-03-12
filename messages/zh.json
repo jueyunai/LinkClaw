@@ -29,7 +29,26 @@
     "noAccount": "还没有账号？",
     "hasAccount": "已有账号？",
     "loginAction": "立即登录",
-    "registerAction": "立即注册"
+    "registerAction": "立即注册",
+    "otherLoginOptions": "其他登录方式",
+    "otherRegisterOptions": "其他注册方式",
+    "comingSoon": "即将支持",
+    "errors": {
+      "unsupportedProvider": "暂不支持该登录方式。",
+      "providerUnavailable": "该登录方式暂未开放。",
+      "providerNotReady": "该登录方式正在准备中。"
+    },
+    "providers": {
+      "email": {
+        "name": "邮箱登录",
+        "action": "使用邮箱继续"
+      },
+      "guancha": {
+        "name": "观猹登录",
+        "action": "使用观猹继续",
+        "unavailable": "观猹登录即将开放。"
+      }
+    }
   },
   "profile": {
     "title": "个人画像",

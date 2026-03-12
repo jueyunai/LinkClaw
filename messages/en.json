@@ -29,7 +29,26 @@
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
     "loginAction": "Login Now",
-    "registerAction": "Sign Up Now"
+    "registerAction": "Sign Up Now",
+    "otherLoginOptions": "Other login options",
+    "otherRegisterOptions": "Other sign up options",
+    "comingSoon": "Coming soon",
+    "errors": {
+      "unsupportedProvider": "This login method is not supported yet.",
+      "providerUnavailable": "This login method is not available right now.",
+      "providerNotReady": "This login method is still being prepared."
+    },
+    "providers": {
+      "email": {
+        "name": "Email login",
+        "action": "Continue with email"
+      },
+      "guancha": {
+        "name": "Guancha login",
+        "action": "Continue with Guancha",
+        "unavailable": "Guancha login will be available soon."
+      }
+    }
   },
   "profile": {
     "title": "Profile",

@@ -1,5 +1,6 @@
 import { useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
+import { getVisibleAuthProviders } from '@/lib/auth';
 import { Link } from '@/i18n/navigation';
 import { register } from '../actions';
 import { Button } from '@/components/ui/button';
@@ -21,9 +22,10 @@ export default async function RegisterPage({
   return <RegisterForm error={error} />;
 }
 
-function RegisterForm({ error }: { error?: string }) {
+export function RegisterForm({ error }: { error?: string }) {
   const t = useTranslations('auth');
   const tc = useTranslations('common');
+  const providers = getVisibleAuthProviders();
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-muted/20 p-4">
@@ -90,6 +92,25 @@ function RegisterForm({ error }: { error?: string }) {
               {t('registerAction')}
             </Button>
           </form>
+          {providers.length ? (
+            <div className="mt-6 space-y-3 border-t border-border/60 pt-6">
+              <p className="text-center text-sm text-muted-foreground">
+                {t('otherRegisterOptions')}
+              </p>
+              {providers.map((provider) => (
+                <Button
+                  key={provider.id}
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  disabled={!provider.enabled}
+                >
+                  {t(provider.actionKey)}
+                  {provider.comingSoon ? ` · ${t('comingSoon')}` : null}
+                </Button>
+              ))}
+            </div>
+          ) : null}
         </CardContent>
         <CardFooter className="justify-center">
           <p className="text-sm text-muted-foreground">
