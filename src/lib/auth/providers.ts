@@ -23,11 +23,10 @@ const authProviders: Record<AuthProviderId, AuthProviderConfig> = {
   guancha: {
     id: 'guancha',
     kind: 'oauth',
-    enabled: false,
-    comingSoon: true,
+    enabled: true,
+    comingSoon: false,
     nameKey: 'providers.guancha.name',
     actionKey: 'providers.guancha.action',
-    unavailableMessageKey: 'providers.guancha.unavailable',
   },
 };
 

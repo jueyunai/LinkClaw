@@ -1,9 +1,16 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { cookies, headers } from 'next/headers';
 import { getLocale } from 'next-intl/server';
 import { getAuthProvider, type AuthProviderId } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
+import {
+  generateCodeVerifier,
+  generateCodeChallenge,
+  generateState,
+  buildAuthorizeUrl,
+} from '@/lib/auth/guancha';
 
 function getLoginErrorMessage(message: string, locale: string) {
   if (message === 'Email not confirmed') {
@@ -27,19 +34,53 @@ function buildAuthErrorRedirectPath(locale: string, error: string, redirectTo?: 
   return `/${locale}/auth/login?${params.toString()}`;
 }
 
-export async function startAuth(providerId: AuthProviderId, redirectTo?: string) {
+export async function startAuth(providerId: AuthProviderId) {
   const locale = await getLocale();
   const provider = getAuthProvider(providerId);
 
   if (!provider) {
-    redirect(buildAuthErrorRedirectPath(locale, 'auth.errors.unsupportedProvider', redirectTo));
+    redirect(buildAuthErrorRedirectPath(locale, 'auth.errors.unsupportedProvider'));
   }
 
   if (!provider.enabled) {
-    redirect(buildAuthErrorRedirectPath(locale, 'auth.errors.providerUnavailable', redirectTo));
+    redirect(buildAuthErrorRedirectPath(locale, 'auth.errors.providerUnavailable'));
   }
 
-  redirect(buildAuthErrorRedirectPath(locale, 'auth.errors.providerNotReady', redirectTo));
+  if (provider.id === 'guancha') {
+    const codeVerifier = generateCodeVerifier();
+    const codeChallenge = generateCodeChallenge(codeVerifier);
+    const state = generateState();
+
+    // 从请求头推断 origin，用于构建回调 URL
+    const headersList = await headers();
+    const host = headersList.get('host') || 'localhost:3000';
+    const proto = headersList.get('x-forwarded-proto') || 'http';
+    const callbackUrl = `${proto}://${host}/api/auth/guancha/callback`;
+
+    // 将 PKCE 和状态信息存入 cookie，供回调路由验证
+    const cookieStore = await cookies();
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      maxAge: 600, // 10 分钟
+      path: '/',
+    };
+
+    cookieStore.set('guancha_code_verifier', codeVerifier, cookieOptions);
+    cookieStore.set('guancha_oauth_state', state, cookieOptions);
+    cookieStore.set('guancha_oauth_locale', locale, cookieOptions);
+
+    const authorizeUrl = buildAuthorizeUrl({
+      codeChallenge,
+      state,
+      redirectUri: callbackUrl,
+    });
+
+    redirect(authorizeUrl);
+  }
+
+  redirect(buildAuthErrorRedirectPath(locale, 'auth.errors.providerNotReady'));
 }
 
 export async function login(formData: FormData) {
