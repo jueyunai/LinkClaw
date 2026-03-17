@@ -148,6 +148,12 @@
     "emptyInvitationPipeline": "你还没有向任何嘉宾发出邀请。",
     "invitationSent": "邀请已发送",
     "inviteGuest": "发送邀请",
-    "emptyRecommendedGuests": "当前暂无新的推荐嘉宾。"
+    "emptyRecommendedGuests": "当前暂无新的推荐嘉宾。",
+    "applicationPipeline": "报名申请",
+    "emptyApplicationPipeline": "暂时没有嘉宾报名。",
+    "acceptApplication": "通过",
+    "rejectApplication": "拒绝",
+    "applicationAccepted": "报名已通过",
+    "applicationRejected": "报名已拒绝"
   }
 }

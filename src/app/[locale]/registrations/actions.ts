@@ -193,3 +193,41 @@ export async function inviteGuest(formData: FormData) {
 
   redirect(`/${locale}/events/${eventId}/manage?success=invited`);
 }
+
+export async function respondToApplication(formData: FormData) {
+  const locale = await getLocale();
+  const { supabase, user } = await requireOrganizer(locale);
+  const registrationId = formData.get('registrationId') as string;
+  const eventId = formData.get('eventId') as string;
+  const status = formData.get('status') as Database['public']['Tables']['registrations']['Update']['status'];
+
+  if (!registrationId || !eventId || !status || !['accepted', 'rejected'].includes(status)) {
+    redirect(`/${locale}/events/${eventId || ''}/manage?error=${encodeURIComponent('操作参数无效')}`);
+  }
+
+  // 确认该报名记录属于当前主办方的活动
+  const { data: event } = await supabase
+    .from('events')
+    .select('id')
+    .eq('id', eventId)
+    .eq('organizer_id', user.id)
+    .single();
+
+  if (!event) {
+    redirect(`/${locale}/my-events?error=${encodeURIComponent('无权处理该报名')}`);
+  }
+
+  const { error } = await supabase
+    .from('registrations')
+    .update({ status } as never)
+    .eq('id', registrationId)
+    .eq('event_id', eventId)
+    .eq('type', 'applied');
+
+  if (error) {
+    redirect(`/${locale}/events/${eventId}/manage?error=${encodeURIComponent(error.message)}`);
+  }
+
+  const success = status === 'accepted' ? 'application_accepted' : 'application_rejected';
+  redirect(`/${locale}/events/${eventId}/manage?success=${success}`);
+}

@@ -148,6 +148,12 @@
     "emptyInvitationPipeline": "You haven't invited any guests yet.",
     "invitationSent": "Invitation sent",
     "inviteGuest": "Send invitation",
-    "emptyRecommendedGuests": "There are no new recommended guests right now."
+    "emptyRecommendedGuests": "There are no new recommended guests right now.",
+    "applicationPipeline": "Applications",
+    "emptyApplicationPipeline": "No guests have applied yet.",
+    "acceptApplication": "Accept",
+    "rejectApplication": "Reject",
+    "applicationAccepted": "Application accepted",
+    "applicationRejected": "Application rejected"
   }
 }

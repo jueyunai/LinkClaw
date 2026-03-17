@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { inviteGuest } from '@/app/[locale]/registrations/actions';
+import { inviteGuest, respondToApplication } from '@/app/[locale]/registrations/actions';
 import { updateEvent, updateEventStatus } from '@/app/[locale]/events/actions';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -135,6 +135,9 @@ export default async function ManageEventPage({ params, searchParams }: ManageEv
     .order('created_at', { ascending: false });
 
   const allRegistrations = (registrations ?? []) as ManageRegistration[];
+  const appliedRegistrations = allRegistrations.filter(
+    (item): item is ManageRegistration & { type: 'applied' } => item.type === 'applied',
+  );
   const invitedRegistrations = allRegistrations.filter(
     (item): item is ManageRegistration & { type: 'invited' } => item.type === 'invited',
   );
@@ -177,11 +180,17 @@ export default async function ManageEventPage({ params, searchParams }: ManageEv
     guest: guestMap.get(registration.guest_id) ?? null,
   }));
 
+  const appliedGuests = appliedRegistrations.map((registration) => ({
+    ...registration,
+    guest: guestMap.get(registration.guest_id) ?? null,
+  }));
+
   return (
     <ManageEventContent
       event={manageEvent}
       recommendedGuests={recommendedGuests}
       invitedGuests={invitedGuests}
+      appliedGuests={appliedGuests}
       error={error}
       success={success}
     />
@@ -192,6 +201,7 @@ export function ManageEventContent({
   event,
   recommendedGuests,
   invitedGuests,
+  appliedGuests,
   error,
   success,
 }: {
@@ -221,6 +231,22 @@ export function ManageEventContent({
     id: string;
     guest_id: string;
     type: 'invited';
+    status: RegistrationStatus;
+    ai_match_reason: string | null;
+    created_at: string;
+    guest: {
+      id: string;
+      display_name: string;
+      bio: string | null;
+      industry: string | null;
+      city: string | null;
+      role: UserRole;
+    } | null;
+  }>;
+  appliedGuests: Array<{
+    id: string;
+    guest_id: string;
+    type: 'applied';
     status: RegistrationStatus;
     ai_match_reason: string | null;
     created_at: string;
@@ -304,6 +330,18 @@ export function ManageEventContent({
           {success === 'closed' ? (
             <div className="rounded-lg bg-primary/10 px-4 py-3 text-sm text-primary">
               {tEvents('eventClosed')}
+            </div>
+          ) : null}
+
+          {success === 'application_accepted' ? (
+            <div className="rounded-lg bg-primary/10 px-4 py-3 text-sm text-primary">
+              {tMyEvents('applicationAccepted')}
+            </div>
+          ) : null}
+
+          {success === 'application_rejected' ? (
+            <div className="rounded-lg bg-primary/10 px-4 py-3 text-sm text-primary">
+              {tMyEvents('applicationRejected')}
             </div>
           ) : null}
 
@@ -412,6 +450,9 @@ export function ManageEventContent({
               <TabsTrigger value="recommended">
                 {tRecommendation('recommendedGuests')} · {recommendedGuests.length}
               </TabsTrigger>
+              <TabsTrigger value="applied">
+                {tMyEvents('applicationPipeline')} · {appliedGuests.length}
+              </TabsTrigger>
               <TabsTrigger value="invited">
                 {tMyEvents('invitationPipeline')} · {invitedGuests.length}
               </TabsTrigger>
@@ -478,6 +519,67 @@ export function ManageEventContent({
                 </div>
               ) : (
                 <EmptyState text={tMyEvents('emptyRecommendedGuests')} />
+              )}
+            </TabsContent>
+
+            <TabsContent value="applied" className="space-y-4">
+              {appliedGuests.length > 0 ? (
+                <div className="grid gap-5 lg:grid-cols-2">
+                  {appliedGuests.map((item) => {
+                    const appliedAt = new Intl.DateTimeFormat(locale === 'zh' ? 'zh-CN' : 'en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    }).format(new Date(item.created_at));
+
+                    return (
+                      <Card key={item.id} className="border-border/60 bg-card/85 shadow-sm">
+                        <CardHeader className="gap-3">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div className="space-y-1">
+                              <CardTitle className="text-xl">
+                                {item.guest?.display_name || tCommon('guest')}
+                              </CardTitle>
+                              <CardDescription className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
+                                <span>{tProfileField(item.guest?.industry ?? null)}</span>
+                                <span>{tProfileField(item.guest?.city ?? null)}</span>
+                                <span>{appliedAt}</span>
+                              </CardDescription>
+                            </div>
+                            <Badge variant={registrationStatusVariantMap[item.status]}>
+                              {tMyEvents(item.status)}
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <p className="line-clamp-4 text-sm leading-6 text-muted-foreground">
+                            {item.guest?.bio || '—'}
+                          </p>
+                          {item.status === 'pending' ? (
+                            <div className="flex flex-wrap gap-2">
+                              <form action={respondToApplication}>
+                                <input type="hidden" name="registrationId" value={item.id} />
+                                <input type="hidden" name="eventId" value={event.id} />
+                                <input type="hidden" name="status" value="accepted" />
+                                <Button type="submit">{tMyEvents('acceptApplication')}</Button>
+                              </form>
+                              <form action={respondToApplication}>
+                                <input type="hidden" name="registrationId" value={item.id} />
+                                <input type="hidden" name="eventId" value={event.id} />
+                                <input type="hidden" name="status" value="rejected" />
+                                <Button type="submit" variant="outline">{tMyEvents('rejectApplication')}</Button>
+                              </form>
+                            </div>
+                          ) : null}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              ) : (
+                <EmptyState text={tMyEvents('emptyApplicationPipeline')} />
               )}
             </TabsContent>
 
