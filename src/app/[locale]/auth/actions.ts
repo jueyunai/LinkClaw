@@ -47,15 +47,31 @@ export async function startAuth(providerId: AuthProviderId) {
   }
 
   if (provider.id === 'guancha') {
-    const codeVerifier = generateCodeVerifier();
-    const codeChallenge = generateCodeChallenge(codeVerifier);
-    const state = generateState();
+    let codeVerifier: string;
+    let codeChallenge: string;
+    let state: string;
+    let authorizeUrl: string;
 
-    // 从请求头推断 origin，用于构建回调 URL
-    const headersList = await headers();
-    const host = headersList.get('host') || 'localhost:3000';
-    const proto = headersList.get('x-forwarded-proto') || 'http';
-    const callbackUrl = `${proto}://${host}/api/auth/guancha/callback`;
+    try {
+      codeVerifier = generateCodeVerifier();
+      codeChallenge = generateCodeChallenge(codeVerifier);
+      state = generateState();
+
+      // 从请求头推断 origin，用于构建回调 URL
+      const headersList = await headers();
+      const host = headersList.get('host') || 'localhost:3000';
+      const proto = headersList.get('x-forwarded-proto') || 'http';
+      const callbackUrl = `${proto}://${host}/api/auth/guancha/callback`;
+
+      authorizeUrl = buildAuthorizeUrl({
+        codeChallenge,
+        state,
+        redirectUri: callbackUrl,
+      });
+    } catch (err) {
+      console.error('观猹 OAuth 初始化失败:', err);
+      redirect(buildAuthErrorRedirectPath(locale, 'auth.errors.providerUnavailable'));
+    }
 
     // 将 PKCE 和状态信息存入 cookie，供回调路由验证
     const cookieStore = await cookies();
@@ -70,12 +86,6 @@ export async function startAuth(providerId: AuthProviderId) {
     cookieStore.set('guancha_code_verifier', codeVerifier, cookieOptions);
     cookieStore.set('guancha_oauth_state', state, cookieOptions);
     cookieStore.set('guancha_oauth_locale', locale, cookieOptions);
-
-    const authorizeUrl = buildAuthorizeUrl({
-      codeChallenge,
-      state,
-      redirectUri: callbackUrl,
-    });
 
     redirect(authorizeUrl);
   }

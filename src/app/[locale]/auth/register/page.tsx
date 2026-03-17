@@ -2,7 +2,7 @@ import { useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { getVisibleAuthProviders } from '@/lib/auth';
 import { Link } from '@/i18n/navigation';
-import { register } from '../actions';
+import { register, startAuth } from '../actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -98,16 +98,17 @@ export function RegisterForm({ error }: { error?: string }) {
                 {t('otherRegisterOptions')}
               </p>
               {providers.map((provider) => (
-                <Button
-                  key={provider.id}
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  disabled={!provider.enabled}
-                >
-                  {t(provider.actionKey)}
-                  {provider.comingSoon ? ` · ${t('comingSoon')}` : null}
-                </Button>
+                <form key={provider.id} action={startAuth.bind(null, provider.id)}>
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    className="w-full"
+                    disabled={!provider.enabled}
+                  >
+                    {t(provider.actionKey)}
+                    {provider.comingSoon ? ` · ${t('comingSoon')}` : null}
+                  </Button>
+                </form>
               ))}
             </div>
           ) : null}
