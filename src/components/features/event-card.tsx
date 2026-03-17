@@ -34,6 +34,7 @@ interface EventCardProps {
     published: string;
     closed: string;
   };
+  showManage?: boolean;
 }
 
 const statusVariantMap: Record<EventStatus, 'secondary' | 'default' | 'outline'> = {
@@ -42,7 +43,7 @@ const statusVariantMap: Record<EventStatus, 'secondary' | 'default' | 'outline'>
   closed: 'outline',
 };
 
-export function EventCard({ event, labels }: EventCardProps) {
+export function EventCard({ event, labels, showManage = false }: EventCardProps) {
   const locale = useLocale();
   const date = new Intl.DateTimeFormat(locale === 'zh' ? 'zh-CN' : 'en-US', {
     year: 'numeric',
@@ -103,9 +104,11 @@ export function EventCard({ event, labels }: EventCardProps) {
         <p className="line-clamp-1 text-xs text-muted-foreground">
           {event.target_audience || event.description}
         </p>
-        <Link href={`/events/${event.id}`}>
-          <Button size="sm">{labels.manage}</Button>
-        </Link>
+        {showManage && (
+          <Link href={`/events/${event.id}`}>
+            <Button size="sm">{labels.manage}</Button>
+          </Link>
+        )}
       </CardFooter>
     </Card>
   );

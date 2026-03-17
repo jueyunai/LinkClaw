@@ -175,6 +175,7 @@ function HomeContent({
                     </div>
                     <EventCard
                       event={event}
+                      showManage={userRole !== null}
                       labels={{
                         eventDate: tEvents('eventDate'),
                         location: tEvents('location'),
@@ -206,6 +207,7 @@ function HomeContent({
               <EventCard
                 key={event.id}
                 event={event}
+                showManage={userRole !== null}
                 labels={{
                   eventDate: tEvents('eventDate'),
                   location: tEvents('location'),
