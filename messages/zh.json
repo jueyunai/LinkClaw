@@ -36,7 +36,8 @@
     "errors": {
       "unsupportedProvider": "暂不支持该登录方式。",
       "providerUnavailable": "该登录方式暂未开放。",
-      "providerNotReady": "该登录方式正在准备中。"
+      "providerNotReady": "该登录方式正在准备中。",
+      "authCancelled": "登录已取消。"
     },
     "providers": {
       "email": {

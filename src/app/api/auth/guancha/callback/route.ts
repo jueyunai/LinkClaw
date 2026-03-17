@@ -83,9 +83,9 @@ export async function GET(request: Request) {
   const redirectWithError = (errorKey: string) =>
     buildLoginRedirect(origin, locale, errorKey, redirectTo);
 
-  // 观猹返回了错误（用户拒绝授权等）
+  // 观猹返回了错误（用户主动取消授权等）
   if (oauthError) {
-    return redirectWithError('auth.errors.providerUnavailable');
+    return redirectWithError('auth.errors.authCancelled');
   }
 
   // 缺少必要参数或 state 不匹配

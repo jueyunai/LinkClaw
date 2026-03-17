@@ -36,7 +36,8 @@
     "errors": {
       "unsupportedProvider": "This login method is not supported yet.",
       "providerUnavailable": "This login method is not available right now.",
-      "providerNotReady": "This login method is still being prepared."
+      "providerNotReady": "This login method is still being prepared.",
+      "authCancelled": "Login cancelled."
     },
     "providers": {
       "email": {
