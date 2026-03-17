@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { cookies, headers } from 'next/headers';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { getAuthProvider, type AuthProviderId } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import {
@@ -12,11 +12,15 @@ import {
   buildAuthorizeUrl,
 } from '@/lib/auth/guancha';
 
-function getLoginErrorMessage(message: string, locale: string) {
+async function getLoginErrorMessage(message: string) {
+  const t = await getTranslations('auth.errors');
+
   if (message === 'Email not confirmed') {
-    return locale === 'en'
-      ? 'Your email is not verified yet. Please check your inbox and click the verification link before logging in.'
-      : '邮箱尚未验证，请先检查收件箱并点击验证邮件中的链接后再登录。';
+    return t('emailNotConfirmed');
+  }
+
+  if (message === 'Invalid login credentials') {
+    return t('invalidCredentials');
   }
 
   return message;
@@ -103,7 +107,7 @@ export async function login(formData: FormData) {
   });
 
   if (error) {
-    const errorMessage = getLoginErrorMessage(error.message, locale);
+    const errorMessage = await getLoginErrorMessage(error.message);
     redirect(`/${locale}/auth/login?error=${encodeURIComponent(errorMessage)}`);
   }
 

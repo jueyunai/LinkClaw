@@ -37,7 +37,9 @@
       "unsupportedProvider": "暂不支持该登录方式。",
       "providerUnavailable": "该登录方式暂未开放。",
       "providerNotReady": "该登录方式正在准备中。",
-      "authCancelled": "登录已取消。"
+      "authCancelled": "登录已取消。",
+      "invalidCredentials": "邮箱或密码错误。",
+      "emailNotConfirmed": "邮箱尚未验证，请先检查收件箱并点击验证邮件中的链接后再登录。"
     },
     "providers": {
       "email": {

@@ -37,7 +37,9 @@
       "unsupportedProvider": "This login method is not supported yet.",
       "providerUnavailable": "This login method is not available right now.",
       "providerNotReady": "This login method is still being prepared.",
-      "authCancelled": "Login cancelled."
+      "authCancelled": "Login cancelled.",
+      "invalidCredentials": "Invalid email or password.",
+      "emailNotConfirmed": "Your email is not verified yet. Please check your inbox and click the verification link before logging in."
     },
     "providers": {
       "email": {

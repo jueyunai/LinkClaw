@@ -18,6 +18,7 @@ interface HomeEvent {
   max_guests: number;
   status: EventStatus;
   target_audience: string | null;
+  organizer_id: string;
 }
 
 export default async function HomePage({
@@ -47,7 +48,7 @@ export default async function HomePage({
 
   const { data: events } = await supabase
     .from('events')
-    .select('id, title, description, location, event_date, max_guests, status, target_audience')
+    .select('id, title, description, location, event_date, max_guests, status, target_audience, organizer_id')
     .eq('status', 'published')
     .order('event_date', { ascending: true });
 
@@ -70,6 +71,7 @@ export default async function HomePage({
     <HomeContent
       events={publishedEvents}
       userRole={profile?.role ?? null}
+      userId={user?.id ?? null}
       recommendations={recommendations}
     />
   );
@@ -78,10 +80,12 @@ export default async function HomePage({
 function HomeContent({
   events,
   userRole,
+  userId,
   recommendations,
 }: {
   events: HomeEvent[];
   userRole: UserRole | null;
+  userId: string | null;
   recommendations: EventRecommendation[];
 }) {
   const tHome = useTranslations('home');
@@ -175,7 +179,7 @@ function HomeContent({
                     </div>
                     <EventCard
                       event={event}
-                      showManage={userRole !== null}
+                      showManage={userId !== null && event.organizer_id === userId}
                       labels={{
                         eventDate: tEvents('eventDate'),
                         location: tEvents('location'),
@@ -207,7 +211,7 @@ function HomeContent({
               <EventCard
                 key={event.id}
                 event={event}
-                showManage={userRole !== null}
+                showManage={userId !== null && event.organizer_id === userId}
                 labels={{
                   eventDate: tEvents('eventDate'),
                   location: tEvents('location'),
