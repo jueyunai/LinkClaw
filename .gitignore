@@ -46,3 +46,6 @@ next-env.d.ts
 
 # MCP config
 .mcp.json
+
+# git worktrees
+.worktrees/
