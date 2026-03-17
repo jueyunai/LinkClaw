@@ -30,6 +30,7 @@ describe('ManageEventContent', () => {
           status: 'draft',
         }}
         recommendedGuests={[]}
+        appliedGuests={[]}
         invitedGuests={[]}
       />,
     );

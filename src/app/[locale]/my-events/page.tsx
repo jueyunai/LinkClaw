@@ -87,7 +87,7 @@ export default async function MyEventsPage({
 
   const { data: registrations } = await supabase
     .from('registrations')
-    .select('id, event_id, type, status, created_at')
+    .select('id, event_id, type, status, created_at, ai_match_reason')
     .eq('guest_id', user.id)
     .order('created_at', { ascending: false });
 
@@ -97,6 +97,7 @@ export default async function MyEventsPage({
     type: 'applied' | 'invited';
     status: RegistrationStatus;
     created_at: string;
+    ai_match_reason: string | null;
   }>;
   const eventIds = [...new Set(guestRegistrations.map((item) => item.event_id))];
 
@@ -284,6 +285,7 @@ function GuestEventsContent({
     type: 'applied' | 'invited';
     status: RegistrationStatus;
     created_at: string;
+    ai_match_reason: string | null;
     event: {
       id: string;
       title: string;
@@ -415,12 +417,13 @@ function GuestRegistrationCard({
   );
 }
 
-function GuestInvitationCard({
+export function GuestInvitationCard({
   item,
 }: {
   item: {
     id: string;
     status: RegistrationStatus;
+    ai_match_reason?: string | null;
     event: {
       id: string;
       title: string;
@@ -454,26 +457,34 @@ function GuestInvitationCard({
           {tEvents('eventDate')} · {date} · {tEvents('location')} · {item.event?.location || '-'}
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-wrap items-center gap-2">
-        {item.status === 'pending' ? (
-          <>
-            <form action={respondToInvitation}>
-              <input type="hidden" name="registrationId" value={item.id} />
-              <input type="hidden" name="status" value="accepted" />
-              <Button type="submit" size="sm">{tMyEvents('accepted')}</Button>
-            </form>
-            <form action={respondToInvitation}>
-              <input type="hidden" name="registrationId" value={item.id} />
-              <input type="hidden" name="status" value="rejected" />
-              <Button type="submit" size="sm" variant="outline">{tMyEvents('rejected')}</Button>
-            </form>
-          </>
+      <CardContent className="space-y-4">
+        {item.ai_match_reason ? (
+          <div className="rounded-lg border border-border/60 bg-muted/30 px-4 py-3">
+            <p className="text-sm font-medium">{tMyEvents('invitationReason')}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{item.ai_match_reason}</p>
+          </div>
         ) : null}
-        {item.event ? (
-          <Link href={`/events/${item.event.id}`}>
-            <Button variant="outline" size="sm">{tMyEvents('viewEvent')}</Button>
-          </Link>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {item.status === 'pending' ? (
+            <>
+              <form action={respondToInvitation}>
+                <input type="hidden" name="registrationId" value={item.id} />
+                <input type="hidden" name="status" value="accepted" />
+                <Button type="submit" size="sm">{tMyEvents('accepted')}</Button>
+              </form>
+              <form action={respondToInvitation}>
+                <input type="hidden" name="registrationId" value={item.id} />
+                <input type="hidden" name="status" value="rejected" />
+                <Button type="submit" size="sm" variant="outline">{tMyEvents('rejected')}</Button>
+              </form>
+            </>
+          ) : null}
+          {item.event ? (
+            <Link href={`/events/${item.event.id}`}>
+              <Button variant="outline" size="sm">{tMyEvents('viewEvent')}</Button>
+            </Link>
+          ) : null}
+        </div>
       </CardContent>
     </Card>
   );

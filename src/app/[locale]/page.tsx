@@ -21,6 +21,16 @@ interface HomeEvent {
   organizer_id: string;
 }
 
+function shouldPromptProfileCompletion(
+  profile: Pick<Profile, 'bio' | 'industry' | 'city' | 'display_name' | 'role'> | null,
+) {
+  if (!profile) {
+    return true;
+  }
+
+  return !profile.bio?.trim() || !profile.industry?.trim() || !profile.city?.trim();
+}
+
 export default async function HomePage({
   params,
 }: {
@@ -66,6 +76,7 @@ export default async function HomePage({
           publishedEvents,
         )
       : [];
+  const shouldShowProfilePrompt = user !== null && shouldPromptProfileCompletion(profile);
 
   return (
     <HomeContent
@@ -73,6 +84,7 @@ export default async function HomePage({
       userRole={profile?.role ?? null}
       userId={user?.id ?? null}
       recommendations={recommendations}
+      shouldShowProfilePrompt={shouldShowProfilePrompt}
     />
   );
 }
@@ -82,11 +94,13 @@ function HomeContent({
   userRole,
   userId,
   recommendations,
+  shouldShowProfilePrompt,
 }: {
   events: HomeEvent[];
   userRole: UserRole | null;
   userId: string | null;
   recommendations: EventRecommendation[];
+  shouldShowProfilePrompt: boolean;
 }) {
   const tHome = useTranslations('home');
   const tEvents = useTranslations('events');
@@ -131,6 +145,24 @@ function HomeContent({
           </div>
         </div>
       </section>
+
+      {shouldShowProfilePrompt ? (
+        <section className="mx-auto max-w-6xl px-4 pb-10">
+          <div className="rounded-[1.5rem] border border-primary/20 bg-primary/5 px-6 py-5 shadow-sm">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-2">
+                <h2 className="text-xl font-semibold tracking-tight">{tHome('profilePromptTitle')}</h2>
+                <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
+                  {tHome('profilePromptDescription')}
+                </p>
+              </div>
+              <Link href="/profile">
+                <Button variant="outline">{tHome('profilePromptAction')}</Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {userRole === 'guest' ? (
         <section className="mx-auto max-w-6xl px-4 pb-10">

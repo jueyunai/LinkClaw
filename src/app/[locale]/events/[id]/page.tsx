@@ -14,7 +14,12 @@ import {
 } from '@/components/ui/card';
 import { createClient } from '@/lib/supabase/server';
 import { applyToEvent } from '@/app/[locale]/registrations/actions';
-import type { EventStatus, RegistrationStatus, UserRole } from '@/types/database';
+import type {
+  EventStatus,
+  RegistrationStatus,
+  RegistrationType,
+  UserRole,
+} from '@/types/database';
 
 const statusVariantMap: Record<EventStatus, 'secondary' | 'default' | 'outline'> = {
   draft: 'secondary',
@@ -42,6 +47,35 @@ type OrganizerProfile = {
   city: string | null;
   role: UserRole;
 };
+
+type EventRegistration = {
+  type: RegistrationType;
+  status: RegistrationStatus;
+};
+
+function getRegistrationLabel(
+  registration: EventRegistration | null,
+  tEvents: ReturnType<typeof useTranslations>,
+) {
+  if (!registration) {
+    return null;
+  }
+
+  const registrationLabelKeyMap: Record<RegistrationType, Record<RegistrationStatus, string>> = {
+    applied: {
+      pending: 'applicationPending',
+      accepted: 'applicationAccepted',
+      rejected: 'applicationRejected',
+    },
+    invited: {
+      pending: 'invitationPending',
+      accepted: 'invitationAccepted',
+      rejected: 'invitationRejected',
+    },
+  };
+
+  return tEvents(registrationLabelKeyMap[registration.type][registration.status]);
+}
 
 export default async function EventDetailPage({
   params,
@@ -77,7 +111,7 @@ export default async function EventDetailPage({
   const organizerProfile = organizer as OrganizerProfile | null;
 
   let profile: { role: UserRole } | null = null;
-  let registration: { status: RegistrationStatus } | null = null;
+  let registration: EventRegistration | null = null;
 
   if (user) {
     const { data: profileData } = await supabase
@@ -90,12 +124,12 @@ export default async function EventDetailPage({
 
     const { data: registrationData } = await supabase
       .from('registrations')
-      .select('status')
+      .select('type, status')
       .eq('event_id', eventDetail.id)
       .eq('guest_id', user.id)
       .maybeSingle();
 
-    registration = registrationData as { status: RegistrationStatus } | null;
+    registration = registrationData as EventRegistration | null;
   }
 
   if (eventDetail.status === 'draft' && user?.id !== eventDetail.organizer_id) {
@@ -110,19 +144,19 @@ export default async function EventDetailPage({
       organizer={organizerProfile}
       currentUserId={user?.id ?? null}
       currentUserRole={profile?.role ?? null}
-      registrationStatus={registration?.status ?? null}
+      registration={registration}
       error={error}
       success={success}
     />
   );
 }
 
-function EventDetailContent({
+export function EventDetailContent({
   event,
   organizer,
   currentUserId,
   currentUserRole,
-  registrationStatus,
+  registration,
   error,
   success,
 }: {
@@ -147,7 +181,7 @@ function EventDetailContent({
   } | null;
   currentUserId: string | null;
   currentUserRole: UserRole | null;
-  registrationStatus: RegistrationStatus | null;
+  registration: EventRegistration | null;
   error?: string;
   success?: string;
 }) {
@@ -155,7 +189,7 @@ function EventDetailContent({
   const tProfile = useTranslations('profile');
   const locale = useLocale();
   const isOwner = currentUserId === event.organizer_id;
-  const canApply = currentUserRole === 'guest' && !registrationStatus && event.status === 'published';
+  const canApply = currentUserRole === 'guest' && !registration && event.status === 'published';
   const showLoginToApply = !currentUserId && event.status === 'published';
   const date = new Intl.DateTimeFormat(locale === 'zh' ? 'zh-CN' : 'en-US', {
     year: 'numeric',
@@ -168,6 +202,7 @@ function EventDetailContent({
 
   const organizerName = organizer?.display_name || tProfile('organizerNameFallback');
   const organizerInitial = organizerName.slice(0, 1).toUpperCase();
+  const registrationLabel = getRegistrationLabel(registration, tEvents);
 
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-background via-background to-muted/20">
@@ -280,8 +315,8 @@ function EventDetailContent({
                       <input type="hidden" name="eventId" value={event.id} />
                       <Button type="submit">{tEvents('apply')}</Button>
                     </form>
-                  ) : registrationStatus ? (
-                    <Button disabled>{tEvents('applied')}</Button>
+                  ) : registrationLabel ? (
+                    <Button disabled>{registrationLabel}</Button>
                   ) : showLoginToApply ? (
                     <Link href={`/auth/login?redirect=/events/${event.id}`}>
                       <Button>{tEvents('apply')}</Button>

@@ -15,7 +15,10 @@
   "home": {
     "title": "发现最适合你的活动",
     "subtitle": "AI 智能匹配，连接活动与嘉宾",
-    "liveBoard": "LinkClaw 实时活动板"
+    "liveBoard": "LinkClaw 实时活动板",
+    "profilePromptTitle": "完善画像，获得更精准的活动推荐",
+    "profilePromptDescription": "补充你的自我介绍、行业和城市信息，帮助系统更准确地匹配活动与邀请。",
+    "profilePromptAction": "去完善画像"
   },
   "auth": {
     "loginTitle": "登录 LinkClaw",
@@ -93,6 +96,12 @@
     "publishedOnlyHint": "活动发布后才能发送邀请",
     "apply": "报名参加",
     "applied": "已报名",
+    "applicationPending": "报名待审核",
+    "applicationAccepted": "报名已通过",
+    "applicationRejected": "报名已拒绝",
+    "invitationPending": "已收到邀请",
+    "invitationAccepted": "已接受邀请",
+    "invitationRejected": "已拒绝邀请",
     "full": "已满员",
     "manage": "管理活动",
     "audience": "适合人群",
@@ -154,6 +163,7 @@
     "acceptApplication": "通过",
     "rejectApplication": "拒绝",
     "applicationAccepted": "报名已通过",
-    "applicationRejected": "报名已拒绝"
+    "applicationRejected": "报名已拒绝",
+    "invitationReason": "推荐理由"
   }
 }

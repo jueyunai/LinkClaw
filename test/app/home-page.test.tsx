@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { ReactNode } from 'react';
 
@@ -24,16 +24,16 @@ vi.mock('@/lib/supabase/server', () => ({
   createClient: () => createClientMock(),
 }));
 
-vi.mock('@/lib/ai/mock-recommendation', () => ({
-  getMockEventRecommendations: vi.fn(() => []),
-}));
-
-vi.mock('@/components/features/event-card', () => ({
-  EventCard: ({ event }: { event: { title: string } }) => <div>{event.title}</div>,
+vi.mock('@/lib/ai/recommendation', () => ({
+  getEventRecommendations: vi.fn(async () => []),
 }));
 
 describe('HomePage', () => {
-  it('嘉宾用户不显示发布活动按钮', async () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('已登录但资料缺失的用户会看到资料完善引导', async () => {
     createClientMock.mockResolvedValue({
       auth: {
         getUser: vi.fn(async () => ({
@@ -85,8 +85,10 @@ describe('HomePage', () => {
 
     const html = renderToStaticMarkup(page);
 
-    expect(html).not.toContain('>create<');
-    expect(html).not.toContain('href="/events/new"');
+    expect(html).toContain('profilePromptTitle');
+    expect(html).toContain('profilePromptDescription');
+    expect(html).toContain('profilePromptAction');
+    expect(html).toContain('href="/profile"');
   });
 
   it('组织者用户显示发布活动按钮', async () => {

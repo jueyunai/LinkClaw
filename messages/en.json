@@ -15,7 +15,10 @@
   "home": {
     "title": "Discover Events Made for You",
     "subtitle": "AI-powered matching between events and guests",
-    "liveBoard": "LinkClaw Live Board"
+    "liveBoard": "LinkClaw Live Board",
+    "profilePromptTitle": "Complete your profile for better recommendations",
+    "profilePromptDescription": "Add your bio, industry, and city so LinkClaw can match you with more relevant events and invitations.",
+    "profilePromptAction": "Complete profile"
   },
   "auth": {
     "loginTitle": "Login to LinkClaw",
@@ -93,6 +96,12 @@
     "publishedOnlyHint": "Invitations are available only after publishing",
     "apply": "Register",
     "applied": "Registered",
+    "applicationPending": "Application pending",
+    "applicationAccepted": "Application accepted",
+    "applicationRejected": "Application rejected",
+    "invitationPending": "Invitation received",
+    "invitationAccepted": "Invitation accepted",
+    "invitationRejected": "Invitation rejected",
     "full": "Full",
     "manage": "Manage",
     "audience": "Audience",
@@ -154,6 +163,7 @@
     "acceptApplication": "Accept",
     "rejectApplication": "Reject",
     "applicationAccepted": "Application accepted",
-    "applicationRejected": "Application rejected"
+    "applicationRejected": "Application rejected",
+    "invitationReason": "Why invited"
   }
 }
