@@ -1,12 +1,18 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { ManageEventContent } from '@/app/[locale]/events/[id]/manage/page';
+vi.mock('@/i18n/navigation', () => ({
+  Link: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
+}));
 
 vi.mock('next-intl', () => ({
   useLocale: () => 'zh',
   useTranslations: () => (key: string) => key,
 }));
+
+import { ManageEventContent } from '@/app/[locale]/events/[id]/manage/page';
 
 describe('ManageEventContent', () => {
   it('草稿活动显示编辑表单与发布按钮', () => {

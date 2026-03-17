@@ -5,7 +5,8 @@ import { EventCard } from '@/components/features/event-card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { createClient } from '@/lib/supabase/server';
-import { getMockEventRecommendations } from '@/lib/ai/mock-recommendation';
+import { getEventRecommendations } from '@/lib/ai/recommendation';
+import type { EventRecommendation } from '@/lib/ai/pipeline/types';
 import type { EventStatus, Profile, UserRole } from '@/types/database';
 
 interface HomeEvent {
@@ -51,9 +52,18 @@ export default async function HomePage({
     .order('event_date', { ascending: true });
 
   const publishedEvents = (events ?? []) as HomeEvent[];
-  const recommendations =
+  const recommendations: EventRecommendation[] =
     profile && profile.role === 'guest'
-      ? getMockEventRecommendations(profile, publishedEvents)
+      ? await getEventRecommendations(
+          {
+            id: user?.id ?? '',
+            display_name: profile.display_name,
+            bio: profile.bio,
+            industry: profile.industry,
+            city: profile.city,
+          },
+          publishedEvents,
+        )
       : [];
 
   return (
@@ -72,20 +82,7 @@ function HomeContent({
 }: {
   events: HomeEvent[];
   userRole: UserRole | null;
-  recommendations: Array<{
-    eventId: string;
-    matchScore: number;
-    matchReasonKey:
-      | 'reasonIndustry'
-      | 'reasonCity'
-      | 'reasonAudience'
-      | 'reasonKeywords'
-      | 'reasonFallback';
-    matchReasonParams?: {
-      value?: string;
-      keywords?: string[];
-    };
-  }>;
+  recommendations: EventRecommendation[];
 }) {
   const tHome = useTranslations('home');
   const tEvents = useTranslations('events');
@@ -140,7 +137,11 @@ function HomeContent({
                 {tRecommendation('eventIntro')}
               </p>
             </div>
-            <Badge variant="outline">{tRecommendation('mockLabel')}</Badge>
+            <Badge variant="outline">
+              {recommendedEvents.some(({ recommendation }) => recommendation.source !== 'mock')
+                ? tRecommendation('liveLabel')
+                : tRecommendation('mockLabel')}
+            </Badge>
           </div>
 
           {recommendedEvents.length > 0 ? (
@@ -165,10 +166,11 @@ function HomeContent({
                         <Badge>{recommendation.matchScore}% {tRecommendation('matchScore')}</Badge>
                       </div>
                       <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                        {tRecommendation(
-                          recommendation.matchReasonKey,
-                          localizedReasonParams,
-                        )}
+                        {recommendation.guestFacingReason ||
+                          tRecommendation(
+                            recommendation.matchReasonKey,
+                            localizedReasonParams,
+                          )}
                       </p>
                     </div>
                     <EventCard

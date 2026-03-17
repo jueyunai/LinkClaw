@@ -106,6 +106,7 @@
     "refresh": "Refresh",
     "recommendedGuests": "Recommended Guests",
     "mockLabel": "Mock AI",
+    "liveLabel": "Live AI",
     "eventIntro": "Based on your profile, we prioritize the events most likely to match you.",
     "reasonIndustry": "This event strongly matches your industry: {value}",
     "reasonCity": "This event location matches your city: {value}",

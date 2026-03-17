@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import type { Database } from '@/types/database';
 import {
   exchangeCodeForTokens,
   getUserInfo,
@@ -21,7 +22,13 @@ async function ensureGuanchaIdentity(params: {
   userId: string;
   guanchaUserId: number;
 }) {
-  const providerSubject = String(params.guanchaUserId);
+  const identityInsert: Database['public']['Tables']['user_auth_identities']['Insert'] = {
+    user_id: params.userId,
+    provider: 'guancha',
+    provider_subject: String(params.guanchaUserId),
+    provider_email: null,
+  };
+  const providerSubject = identityInsert.provider_subject;
   const { data: existing, error: existingError } = await params.admin
     .from('user_auth_identities')
     .select('id')
@@ -38,12 +45,7 @@ async function ensureGuanchaIdentity(params: {
     return;
   }
 
-  const { error: insertError } = await params.admin.from('user_auth_identities').insert({
-    user_id: params.userId,
-    provider: 'guancha',
-    provider_subject: providerSubject,
-    provider_email: null,
-  });
+  const { error: insertError } = await params.admin.from('user_auth_identities').insert(identityInsert as never);
 
   if (insertError) {
     console.error('写入观猹身份关联失败:', insertError);

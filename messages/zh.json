@@ -106,6 +106,7 @@
     "refresh": "刷新推荐",
     "recommendedGuests": "推荐嘉宾",
     "mockLabel": "模拟 AI",
+    "liveLabel": "实时 AI",
     "eventIntro": "根据你的画像信息，优先挑选最可能匹配的活动。",
     "reasonIndustry": "活动内容与你的行业“{value}”高度相关",
     "reasonCity": "活动地点与所在城市“{value}”匹配",

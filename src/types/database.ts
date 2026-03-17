@@ -3,6 +3,14 @@ export type EventStatus = "draft" | "published" | "closed";
 export type RegistrationType = "applied" | "invited";
 export type RegistrationStatus = "pending" | "accepted" | "rejected";
 
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
 export interface Profile {
   id: string;
   role: UserRole;
@@ -47,8 +55,30 @@ export interface AiRecommendation {
   recommended_id: string;
   match_score: number;
   match_reason: string;
+  mutual_interest: boolean;
+  guest_facing_reason: string | null;
+  organizer_facing_reason: string | null;
+  combined_reasons: Json;
+  risks: Json;
+  guest_evaluation: Json | null;
+  activity_evaluation: Json | null;
+  source: string | null;
+  pipeline_version: string | null;
   expires_at: string;
   created_at: string;
+  updated_at: string;
+}
+
+export interface AiProfile {
+  id: string;
+  source_type: 'guest' | 'event';
+  source_id: string;
+  profile_json: Json;
+  model_id: string;
+  pipeline_version: string | null;
+  expires_at: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface UserAuthIdentity {
@@ -90,8 +120,14 @@ export interface Database {
       };
       ai_recommendations: {
         Row: AiRecommendation;
-        Insert: Omit<AiRecommendation, 'id' | 'created_at'>;
-        Update: Partial<Omit<AiRecommendation, 'id' | 'created_at'>>;
+        Insert: Omit<AiRecommendation, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<AiRecommendation, 'id' | 'created_at' | 'updated_at'>>;
+        Relationships: [];
+      };
+      ai_profiles: {
+        Row: AiProfile;
+        Insert: Omit<AiProfile, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<AiProfile, 'id' | 'created_at' | 'updated_at'>>;
         Relationships: [];
       };
       user_auth_identities: {
@@ -101,8 +137,12 @@ export interface Database {
         Relationships: [];
       };
     };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
+    };
     Enums: {
       user_role: UserRole;
       event_status: EventStatus;
@@ -110,6 +150,8 @@ export interface Database {
       registration_status: RegistrationStatus;
       recommendation_target: 'guest' | 'event';
     };
-    CompositeTypes: Record<string, never>;
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
 }
