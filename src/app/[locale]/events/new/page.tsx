@@ -3,7 +3,6 @@ import { setRequestLocale } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createEvent } from '../actions';
-import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -11,8 +10,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { FormActions } from '@/components/ui/form-actions';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PendingSubmitButton } from '@/components/ui/pending-submit-button';
 import { Textarea } from '@/components/ui/textarea';
 import type { UserRole } from '@/types/database';
 
@@ -53,6 +54,7 @@ export default async function NewEventPage({
 
 function NewEventForm({ error }: { error?: string }) {
   const t = useTranslations('events');
+  const tCommon = useTranslations('common');
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-3xl items-center px-4 py-10">
@@ -106,14 +108,23 @@ function NewEventForm({ error }: { error?: string }) {
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button type="submit" name="intent" value="draft" variant="outline" className="flex-1">
-                {t('saveDraft')}
-              </Button>
-              <Button type="submit" name="intent" value="publish" className="flex-1">
-                {t('publishNow')}
-              </Button>
-            </div>
+            <FormActions data-testid="new-event-form-actions">
+              <PendingSubmitButton
+                type="submit"
+                name="intent"
+                value="draft"
+                variant="outline"
+                idleText={t('saveDraft')}
+                pendingText={tCommon('pending.saving')}
+              />
+              <PendingSubmitButton
+                type="submit"
+                name="intent"
+                value="publish"
+                idleText={t('publishNow')}
+                pendingText={tCommon('pending.publishing')}
+              />
+            </FormActions>
           </form>
         </CardContent>
       </Card>

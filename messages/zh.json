@@ -10,7 +10,13 @@
     "submit": "提交",
     "loading": "加载中...",
     "guest": "嘉宾",
-    "organizer": "主办方"
+    "organizer": "主办方",
+    "pending": {
+      "saving": "保存中...",
+      "publishing": "发布中...",
+      "processing": "处理中...",
+      "inviting": "邀请中..."
+    }
   },
   "home": {
     "title": "发现最适合你的活动",

@@ -11,6 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { FormActions } from '@/components/ui/form-actions';
+import { PendingSubmitButton } from '@/components/ui/pending-submit-button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { inviteGuest, respondToApplication } from '@/app/[locale]/registrations/actions';
 import { updateEvent, updateEventStatus } from '@/app/[locale]/events/actions';
@@ -291,11 +293,11 @@ export function ManageEventContent({
                 <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{event.title}</h1>
                 <p className="text-sm text-muted-foreground">{tMyEvents('manageEventIntro')}</p>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <FormActions data-testid="manage-event-header-actions">
                 <Link href={`/events/${event.id}`}>
                   <Button variant="outline">{tMyEvents('viewEvent')}</Button>
                 </Link>
-              </div>
+              </FormActions>
             </div>
           </div>
 
@@ -358,13 +360,16 @@ export function ManageEventContent({
                   <span>{tEvents('maxGuests')} · {event.max_guests}</span>
                 </CardDescription>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <FormActions data-testid="manage-event-status-actions">
                 {canPublish ? (
                   <form action={updateEventStatus}>
                     <input type="hidden" name="eventId" value={event.id} />
                     <input type="hidden" name="status" value="published" />
                     <input type="hidden" name="returnTo" value="manage" />
-                    <Button type="submit">{event.status === 'closed' ? tEvents('republish') : tEvents('publish')}</Button>
+                    <PendingSubmitButton
+                      idleText={event.status === 'closed' ? tEvents('republish') : tEvents('publish')}
+                      pendingText={tCommon('pending.publishing')}
+                    />
                   </form>
                 ) : null}
                 {canUnpublish ? (
@@ -372,10 +377,14 @@ export function ManageEventContent({
                     <input type="hidden" name="eventId" value={event.id} />
                     <input type="hidden" name="status" value="closed" />
                     <input type="hidden" name="returnTo" value="manage" />
-                    <Button type="submit" variant="outline">{tEvents('unpublish')}</Button>
+                    <PendingSubmitButton
+                      variant="outline"
+                      idleText={tEvents('unpublish')}
+                      pendingText={tCommon('pending.processing')}
+                    />
                   </form>
                 ) : null}
-              </div>
+              </FormActions>
             </CardHeader>
             <CardContent className="space-y-6">
               <form action={updateEvent} className="space-y-4">
@@ -438,9 +447,12 @@ export function ManageEventContent({
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                  <Button type="submit">{tEvents('saveChanges')}</Button>
-                </div>
+                <FormActions data-testid="manage-event-form-actions">
+                  <PendingSubmitButton
+                    idleText={tEvents('saveChanges')}
+                    pendingText={tCommon('pending.saving')}
+                  />
+                </FormActions>
               </form>
             </CardContent>
           </Card>
@@ -505,9 +517,13 @@ export function ManageEventContent({
                             <input type="hidden" name="eventId" value={event.id} />
                             <input type="hidden" name="guestId" value={guest.id} />
                             <input type="hidden" name="aiMatchReason" value={localizedReason} />
-                            <Button type="submit" disabled={event.status !== 'published'}>
-                              {tMyEvents('inviteGuest')}
-                            </Button>
+                            <FormActions className="w-full" data-testid={`recommended-guest-actions-${guest.id}`}>
+                              <PendingSubmitButton
+                                disabled={event.status !== 'published'}
+                                idleText={tMyEvents('inviteGuest')}
+                                pendingText={tCommon('pending.inviting')}
+                              />
+                            </FormActions>
                             {event.status !== 'published' ? (
                               <p className="text-xs text-muted-foreground">{tEvents('publishedOnlyHint')}</p>
                             ) : null}
@@ -558,20 +574,27 @@ export function ManageEventContent({
                             {item.guest?.bio || '—'}
                           </p>
                           {item.status === 'pending' ? (
-                            <div className="flex flex-wrap gap-2">
-                              <form action={respondToApplication}>
-                                <input type="hidden" name="registrationId" value={item.id} />
-                                <input type="hidden" name="eventId" value={event.id} />
-                                <input type="hidden" name="status" value="accepted" />
-                                <Button type="submit">{tMyEvents('acceptApplication')}</Button>
-                              </form>
+                            <FormActions data-testid={`application-actions-${item.id}`}>
                               <form action={respondToApplication}>
                                 <input type="hidden" name="registrationId" value={item.id} />
                                 <input type="hidden" name="eventId" value={event.id} />
                                 <input type="hidden" name="status" value="rejected" />
-                                <Button type="submit" variant="outline">{tMyEvents('rejectApplication')}</Button>
+                                <PendingSubmitButton
+                                  variant="outline"
+                                  idleText={tMyEvents('rejectApplication')}
+                                  pendingText={tCommon('pending.processing')}
+                                />
                               </form>
-                            </div>
+                              <form action={respondToApplication}>
+                                <input type="hidden" name="registrationId" value={item.id} />
+                                <input type="hidden" name="eventId" value={event.id} />
+                                <input type="hidden" name="status" value="accepted" />
+                                <PendingSubmitButton
+                                  idleText={tMyEvents('acceptApplication')}
+                                  pendingText={tCommon('pending.processing')}
+                                />
+                              </form>
+                            </FormActions>
                           ) : null}
                         </CardContent>
                       </Card>

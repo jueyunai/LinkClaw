@@ -10,7 +10,13 @@
     "submit": "Submit",
     "loading": "Loading...",
     "guest": "Guest",
-    "organizer": "Organizer"
+    "organizer": "Organizer",
+    "pending": {
+      "saving": "Saving...",
+      "publishing": "Publishing...",
+      "processing": "Processing...",
+      "inviting": "Inviting..."
+    }
   },
   "home": {
     "title": "Discover Events Made for You",
