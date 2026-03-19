@@ -1,9 +1,9 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
-import type { Database, UserRole } from '@/types/database';
+import type { BountyRank, Database, HunterLevel, UserRole } from '@/types/database';
 
 async function requireOrganizer(locale: string) {
   const supabase = await createClient();
@@ -32,6 +32,7 @@ async function requireOrganizer(locale: string) {
 export async function applyToEvent(formData: FormData) {
   const supabase = await createClient();
   const locale = await getLocale();
+  const tErrors = await getTranslations('errors');
   const eventId = formData.get('eventId') as string;
 
   const {
@@ -44,32 +45,37 @@ export async function applyToEvent(formData: FormData) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, hunter_level')
     .eq('id', user.id)
     .single();
-  const guestProfile = profile as { role: UserRole } | null;
+  const guestProfile = profile as { role: UserRole; hunter_level: HunterLevel } | null;
 
   if (!guestProfile || guestProfile.role !== 'guest') {
-    redirect(`/${locale}/events/${eventId}?error=${encodeURIComponent('只有嘉宾可以报名活动')}`);
+    redirect(`/${locale}/events/${eventId}?error=${encodeURIComponent(tErrors('guestOnly'))}`);
   }
 
   const { data: event } = await supabase
     .from('events')
-    .select('id, organizer_id, status')
+    .select('id, organizer_id, status, bounty_rank')
     .eq('id', eventId)
     .single();
   const targetEvent = event as {
     id: string;
     organizer_id: string;
     status: 'draft' | 'published' | 'closed';
+    bounty_rank: BountyRank;
   } | null;
 
   if (!targetEvent || targetEvent.status !== 'published') {
-    redirect(`/${locale}/events/${eventId}?error=${encodeURIComponent('当前活动暂不接受报名')}`);
+    redirect(`/${locale}/events/${eventId}?error=${encodeURIComponent(tErrors('questNotAvailable'))}`);
   }
 
   if (targetEvent.organizer_id === user.id) {
-    redirect(`/${locale}/events/${eventId}?error=${encodeURIComponent('不能报名自己发布的活动')}`);
+    redirect(`/${locale}/events/${eventId}?error=${encodeURIComponent(tErrors('cannotClaimOwn'))}`);
+  }
+
+  if (guestProfile.hunter_level < targetEvent.bounty_rank) {
+    redirect(`/${locale}/events/${eventId}?error=${encodeURIComponent(tErrors('rankInsufficient'))}`);
   }
 
   const registrationInsert: Database['public']['Tables']['registrations']['Insert'] = {
@@ -88,7 +94,7 @@ export async function applyToEvent(formData: FormData) {
     const message =
       error.message.toLowerCase().includes('duplicate') ||
       error.message.toLowerCase().includes('unique')
-        ? '你已经报名过该活动'
+        ? tErrors('alreadyClaimed')
         : error.message;
 
     redirect(`/${locale}/events/${eventId}?error=${encodeURIComponent(message)}`);
@@ -99,6 +105,7 @@ export async function applyToEvent(formData: FormData) {
 
 export async function respondToInvitation(formData: FormData) {
   const locale = await getLocale();
+  const tErrors = await getTranslations('errors');
   const supabase = await createClient();
   const registrationId = formData.get('registrationId') as string;
   const status = formData.get('status') as Database['public']['Tables']['registrations']['Update']['status'];
@@ -112,7 +119,7 @@ export async function respondToInvitation(formData: FormData) {
   }
 
   if (!registrationId || !status || !['accepted', 'rejected'].includes(status)) {
-    redirect(`/${locale}/my-events?error=${encodeURIComponent('邀请状态无效')}`);
+    redirect(`/${locale}/my-events?error=${encodeURIComponent(tErrors('invalidInvitationStatus'))}`);
   }
 
   const { data: profile } = await supabase
@@ -123,7 +130,7 @@ export async function respondToInvitation(formData: FormData) {
   const guestProfile = profile as { role: UserRole } | null;
 
   if (!guestProfile || guestProfile.role !== 'guest') {
-    redirect(`/${locale}/my-events?error=${encodeURIComponent('只有嘉宾可以处理邀请')}`);
+    redirect(`/${locale}/my-events?error=${encodeURIComponent(tErrors('guestOnlyInvitation'))}`);
   }
 
   const { error } = await supabase
@@ -142,13 +149,14 @@ export async function respondToInvitation(formData: FormData) {
 
 export async function inviteGuest(formData: FormData) {
   const locale = await getLocale();
+  const tErrors = await getTranslations('errors');
   const { supabase, user } = await requireOrganizer(locale);
   const eventId = formData.get('eventId') as string;
   const guestId = formData.get('guestId') as string;
   const aiMatchReason = (formData.get('aiMatchReason') as string) || null;
 
   if (!eventId || !guestId) {
-    redirect(`/${locale}/events/${eventId || ''}/manage?error=${encodeURIComponent('邀请参数无效')}`);
+    redirect(`/${locale}/events/${eventId || ''}/manage?error=${encodeURIComponent(tErrors('invalidInviteParams'))}`);
   }
 
   const { data: event } = await supabase
@@ -164,11 +172,11 @@ export async function inviteGuest(formData: FormData) {
   } | null;
 
   if (!organizerEvent) {
-    redirect(`/${locale}/my-events?error=${encodeURIComponent('无权邀请该活动嘉宾')}`);
+    redirect(`/${locale}/my-events?error=${encodeURIComponent(tErrors('invitePermissionDenied'))}`);
   }
 
   if (organizerEvent.status !== 'published') {
-    redirect(`/${locale}/events/${eventId}/manage?error=${encodeURIComponent('只有已发布活动可以邀请嘉宾')}`);
+    redirect(`/${locale}/events/${eventId}/manage?error=${encodeURIComponent(tErrors('invitePublishedOnly'))}`);
   }
 
   const registrationInsert: Database['public']['Tables']['registrations']['Insert'] = {
@@ -185,7 +193,7 @@ export async function inviteGuest(formData: FormData) {
     const message =
       error.message.toLowerCase().includes('duplicate') ||
       error.message.toLowerCase().includes('unique')
-        ? '该嘉宾已在活动名单中'
+        ? tErrors('alreadyInvited')
         : error.message;
 
     redirect(`/${locale}/events/${eventId}/manage?error=${encodeURIComponent(message)}`);
@@ -196,16 +204,16 @@ export async function inviteGuest(formData: FormData) {
 
 export async function respondToApplication(formData: FormData) {
   const locale = await getLocale();
+  const tErrors = await getTranslations('errors');
   const { supabase, user } = await requireOrganizer(locale);
   const registrationId = formData.get('registrationId') as string;
   const eventId = formData.get('eventId') as string;
   const status = formData.get('status') as Database['public']['Tables']['registrations']['Update']['status'];
 
   if (!registrationId || !eventId || !status || !['accepted', 'rejected'].includes(status)) {
-    redirect(`/${locale}/events/${eventId || ''}/manage?error=${encodeURIComponent('操作参数无效')}`);
+    redirect(`/${locale}/events/${eventId || ''}/manage?error=${encodeURIComponent(tErrors('invalidOperationParams'))}`);
   }
 
-  // 确认该报名记录属于当前主办方的活动
   const { data: event } = await supabase
     .from('events')
     .select('id')
@@ -214,7 +222,7 @@ export async function respondToApplication(formData: FormData) {
     .single();
 
   if (!event) {
-    redirect(`/${locale}/my-events?error=${encodeURIComponent('无权处理该报名')}`);
+    redirect(`/${locale}/my-events?error=${encodeURIComponent(tErrors('applicationPermissionDenied'))}`);
   }
 
   const { error } = await supabase

@@ -255,9 +255,12 @@ export async function getEventRecommendations(
   profile: GuestProfileInput,
   events: EventDetailInput[],
   limit = getAiRecommendationConfig().defaultLimit,
+  hunterLevel?: number,
 ): Promise<EventRecommendation[]> {
   const config = getAiRecommendationConfig();
-  const candidateEvents = events.slice(0, config.maxCandidates);
+  const eligibleEvents =
+    hunterLevel === undefined ? events : events.filter((event) => event.bounty_rank <= hunterLevel);
+  const candidateEvents = eligibleEvents.slice(0, config.maxCandidates);
 
   if (config.provider !== 'remote' || !config.apiKey || !config.baseUrl) {
     return getMockEventRecommendations(profile, candidateEvents, limit).map((recommendation) =>

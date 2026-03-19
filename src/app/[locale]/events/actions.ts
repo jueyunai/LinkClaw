@@ -1,9 +1,9 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
-import type { Database, EventStatus, UserRole } from '@/types/database';
+import type { BountyRank, Database, EventStatus, UserRole } from '@/types/database';
 
 type EventFormValues = {
   title: string;
@@ -12,9 +12,11 @@ type EventFormValues = {
   eventDate: string;
   location: string;
   maxGuests: number;
+  bountyRank: BountyRank;
 };
 
 type EventReturnTo = 'manage' | 'my-events';
+type ErrorTranslator = Awaited<ReturnType<typeof getTranslations<'errors'>>>;
 
 function getEventRedirectPath(locale: string, eventId: string, returnTo: EventReturnTo = 'my-events') {
   return returnTo === 'manage' ? `/${locale}/events/${eventId}/manage` : `/${locale}/my-events`;
@@ -33,6 +35,8 @@ function getStatusSuccess(status: EventStatus, returnTo: EventReturnTo) {
 }
 
 function parseEventFormData(formData: FormData): EventFormValues {
+  const bountyRankValue = formData.get('bountyRank');
+
   return {
     title: (formData.get('title') as string)?.trim(),
     description: (formData.get('description') as string)?.trim(),
@@ -40,16 +44,33 @@ function parseEventFormData(formData: FormData): EventFormValues {
     eventDate: formData.get('eventDate') as string,
     location: (formData.get('location') as string)?.trim(),
     maxGuests: Number(formData.get('maxGuests')),
+    bountyRank: Number(bountyRankValue === null || bountyRankValue === '' ? 1 : bountyRankValue) as BountyRank,
   };
 }
 
-function validateEventFormValues(locale: string, values: EventFormValues, errorPath: string) {
-  if (!values.title || !values.description || !values.eventDate || !values.location || !Number.isFinite(values.maxGuests)) {
-    redirect(`/${locale}/${errorPath}?error=${encodeURIComponent('请完整填写活动信息')}`);
+function validateEventFormValues(
+  tErrors: ErrorTranslator,
+  locale: string,
+  values: EventFormValues,
+  errorPath: string,
+) {
+  if (
+    !values.title ||
+    !values.description ||
+    !values.eventDate ||
+    !values.location ||
+    !Number.isFinite(values.maxGuests) ||
+    !Number.isFinite(values.bountyRank)
+  ) {
+    redirect(`/${locale}/${errorPath}?error=${encodeURIComponent(tErrors('missingEventInfo'))}`);
   }
 
   if (values.maxGuests <= 0) {
-    redirect(`/${locale}/${errorPath}?error=${encodeURIComponent('人数上限必须大于 0')}`);
+    redirect(`/${locale}/${errorPath}?error=${encodeURIComponent(tErrors('maxGuestsInvalid'))}`);
+  }
+
+  if (values.bountyRank < 1 || values.bountyRank > 5) {
+    redirect(`/${locale}/${errorPath}?error=${encodeURIComponent(tErrors('invalidBountyRank'))}`);
   }
 }
 
@@ -79,12 +100,13 @@ async function requireOrganizer(locale: string) {
 
 export async function createEvent(formData: FormData) {
   const locale = await getLocale();
+  const tErrors = await getTranslations('errors');
   const { supabase, user } = await requireOrganizer(locale);
   const values = parseEventFormData(formData);
   const intent = formData.get('intent') as string | null;
   const status: EventStatus = intent === 'publish' ? 'published' : 'draft';
 
-  validateEventFormValues(locale, values, 'events/new');
+  validateEventFormValues(tErrors, locale, values, 'events/new');
 
   const eventInsert: Database['public']['Tables']['events']['Insert'] = {
     organizer_id: user.id,
@@ -94,6 +116,7 @@ export async function createEvent(formData: FormData) {
     event_date: new Date(values.eventDate).toISOString(),
     location: values.location,
     max_guests: values.maxGuests,
+    bounty_rank: values.bountyRank,
     status,
   };
 
@@ -106,7 +129,7 @@ export async function createEvent(formData: FormData) {
 
   if (error || !createdEvent) {
     redirect(
-      `/${locale}/events/new?error=${encodeURIComponent(error?.message ?? '活动创建失败')}`,
+      `/${locale}/events/new?error=${encodeURIComponent(error?.message ?? tErrors('eventCreateFailed'))}`,
     );
   }
 
@@ -116,15 +139,16 @@ export async function createEvent(formData: FormData) {
 
 export async function updateEvent(formData: FormData) {
   const locale = await getLocale();
+  const tErrors = await getTranslations('errors');
   const { supabase, user } = await requireOrganizer(locale);
   const eventId = formData.get('eventId') as string;
   const values = parseEventFormData(formData);
 
   if (!eventId) {
-    redirect(`/${locale}/my-events?error=${encodeURIComponent('活动不存在')}`);
+    redirect(`/${locale}/my-events?error=${encodeURIComponent(tErrors('eventNotFound'))}`);
   }
 
-  validateEventFormValues(locale, values, `events/${eventId}/manage`);
+  validateEventFormValues(tErrors, locale, values, `events/${eventId}/manage`);
 
   const eventUpdate: Database['public']['Tables']['events']['Update'] = {
     title: values.title,
@@ -133,6 +157,7 @@ export async function updateEvent(formData: FormData) {
     event_date: new Date(values.eventDate).toISOString(),
     location: values.location,
     max_guests: values.maxGuests,
+    bounty_rank: values.bountyRank,
   };
 
   const { error } = await supabase
@@ -150,13 +175,14 @@ export async function updateEvent(formData: FormData) {
 
 export async function updateEventStatus(formData: FormData) {
   const locale = await getLocale();
+  const tErrors = await getTranslations('errors');
   const { supabase, user } = await requireOrganizer(locale);
   const eventId = formData.get('eventId') as string;
   const status = formData.get('status') as EventStatus;
   const returnTo = (formData.get('returnTo') as EventReturnTo | null) ?? 'my-events';
 
   if (!eventId || !status || !['draft', 'published', 'closed'].includes(status)) {
-    redirect(`/${locale}/my-events?error=${encodeURIComponent('活动状态无效')}`);
+    redirect(`/${locale}/my-events?error=${encodeURIComponent(tErrors('invalidEventStatus'))}`);
   }
 
   const redirectPath = getEventRedirectPath(locale, eventId, returnTo);

@@ -1,4 +1,5 @@
 import { useLocale, useTranslations } from 'next-intl';
+import { HUNTER_LEVEL_META } from '@/types/database';
 import { setRequestLocale } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
@@ -24,7 +25,7 @@ import {
   type MockGuestRecommendation,
 } from '@/lib/ai/mock-recommendation';
 import { createClient } from '@/lib/supabase/server';
-import type { EventStatus, RegistrationStatus, UserRole } from '@/types/database';
+import type { BountyRank, EventStatus, RegistrationStatus, UserRole } from '@/types/database';
 
 const eventStatusVariantMap: Record<EventStatus, 'secondary' | 'default' | 'outline'> = {
   draft: 'secondary',
@@ -72,6 +73,7 @@ type ManageEvent = {
   event_date: string;
   location: string;
   max_guests: number;
+  bounty_rank: BountyRank;
   status: EventStatus;
 };
 
@@ -120,7 +122,7 @@ export default async function ManageEventPage({ params, searchParams }: ManageEv
 
   const { data: event } = await supabase
     .from('events')
-    .select('id, organizer_id, title, description, target_audience, event_date, location, max_guests, status')
+    .select('id, organizer_id, title, description, target_audience, event_date, location, max_guests, bounty_rank, status')
     .eq('id', id)
     .eq('organizer_id', user.id)
     .single();
@@ -216,6 +218,7 @@ export function ManageEventContent({
     event_date: string;
     location: string;
     max_guests: number;
+    bounty_rank: BountyRank;
     status: EventStatus;
   };
   recommendedGuests: Array<{
@@ -266,6 +269,8 @@ export function ManageEventContent({
 }) {
   const tCommon = useTranslations('common');
   const tEvents = useTranslations('events');
+  const tBounty = useTranslations('bounty');
+  const tHunter = useTranslations('hunter');
   const tMyEvents = useTranslations('myEvents');
   const tRecommendation = useTranslations('recommendation');
   const locale = useLocale();
@@ -352,6 +357,7 @@ export function ManageEventContent({
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant={eventStatusVariantMap[event.status]}>{tEvents(event.status)}</Badge>
+                  <Badge variant="outline">{tHunter(`level_${HUNTER_LEVEL_META[event.bounty_rank].key}`)}</Badge>
                   <CardTitle className="text-xl">{tMyEvents('manageEvent')}</CardTitle>
                 </div>
                 <CardDescription className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
@@ -444,6 +450,21 @@ export function ManageEventContent({
                       defaultValue={event.max_guests}
                       required
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="bountyRank">{tBounty('min_rank')}</Label>
+                    <select
+                      id="bountyRank"
+                      name="bountyRank"
+                      defaultValue={String(event.bounty_rank)}
+                      className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none focus:border-primary"
+                    >
+                      {([1, 2, 3, 4, 5] as BountyRank[]).map((level) => (
+                        <option key={level} value={level}>
+                          {tHunter(`level_${HUNTER_LEVEL_META[level].key}`)}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 

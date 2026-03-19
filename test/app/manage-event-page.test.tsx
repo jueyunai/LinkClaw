@@ -34,6 +34,7 @@ const baseEvent = {
   event_date: '2026-03-11T15:04:00.000Z',
   location: '深圳',
   max_guests: 20,
+  bounty_rank: 3,
 } as const;
 
 describe('ManageEventContent', () => {
@@ -59,6 +60,7 @@ describe('ManageEventContent', () => {
     expect(screen.getByRole('button', { name: 'publish' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'saveChanges' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'unpublish' })).not.toBeInTheDocument();
+    expect((screen.getByLabelText('min_rank') as HTMLSelectElement).value).toBe('3');
   });
 
   it('页面使用稳定的统一操作区标识', () => {
@@ -114,7 +116,7 @@ describe('ManageEventContent', () => {
             recommendation: {
               guestId: 'guest-1',
               matchScore: 92,
-              matchReasonKey: 'industryOverlap',
+              matchReasonKey: 'guestReasonIndustry',
               matchReasonParams: { value: 'AI' },
             },
             guest: {

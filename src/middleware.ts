@@ -1,10 +1,11 @@
 import createIntlMiddleware from 'next-intl/middleware';
 import { NextResponse, type NextRequest } from 'next/server';
+import { isAdmin } from './lib/admin';
 import { routing } from './i18n/routing';
 import { updateSession } from './lib/supabase/middleware';
 
 const intlMiddleware = createIntlMiddleware(routing);
-const protectedPaths = ['/profile', '/events/new', '/my-events'];
+const protectedPaths = ['/profile', '/events/new', '/my-events', '/admin'];
 const authPaths = ['/auth/login', '/auth/register'];
 
 export async function middleware(request: NextRequest) {
@@ -22,6 +23,11 @@ export async function middleware(request: NextRequest) {
     const loginUrl = new URL(`/${locale}/auth/login`, request.url);
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  if (pathnameWithoutLocale.startsWith('/admin') && user && !isAdmin(user.email)) {
+    const locale = pathname.startsWith('/en') ? 'en' : 'zh';
+    return NextResponse.redirect(new URL(`/${locale}`, request.url));
   }
 
   if (authPaths.some((path) => pathnameWithoutLocale.startsWith(path)) && user) {

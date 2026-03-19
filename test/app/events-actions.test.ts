@@ -5,6 +5,7 @@ const redirectMock = vi.fn((url: string) => {
 });
 
 const getLocaleMock = vi.fn(async () => 'zh');
+const getTranslationsMock = vi.fn(async () => (key: string) => key);
 const getUserMock = vi.fn();
 const profileSingleMock = vi.fn();
 const eventInsertSingleMock = vi.fn();
@@ -38,6 +39,7 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('next-intl/server', () => ({
   getLocale: getLocaleMock,
+  getTranslations: getTranslationsMock,
 }));
 
 vi.mock('@/lib/supabase/server', () => ({
@@ -82,6 +84,7 @@ describe('events actions', () => {
     formData.set('eventDate', '2026-03-11T15:04');
     formData.set('location', '深圳');
     formData.set('maxGuests', '20');
+    formData.set('bountyRank', '3');
     formData.set('intent', 'draft');
 
     await expect(createEvent(formData)).rejects.toThrow('REDIRECT:/zh/events/event-1/manage?success=draft_saved');
@@ -91,10 +94,11 @@ describe('events actions', () => {
       title: '测试活动',
       location: '深圳',
       max_guests: 20,
+      bounty_rank: 3,
     });
   });
 
-  it('创建活动时可直接发布', async () => {
+  it('创建活动时未显式传 bountyRank 也会使用默认值 1', async () => {
     const { createEvent } = await import('@/app/[locale]/events/actions');
     const formData = new FormData();
     formData.set('title', '测试活动');
@@ -105,10 +109,10 @@ describe('events actions', () => {
     formData.set('intent', 'publish');
 
     await expect(createEvent(formData)).rejects.toThrow('REDIRECT:/zh/events/event-1/manage?success=published');
-    expect(eventInsertMock.mock.calls[0][0]).toMatchObject({ status: 'published' });
+    expect(eventInsertMock.mock.calls[0][0]).toMatchObject({ status: 'published', bounty_rank: 1 });
   });
 
-  it('更新活动时只修改内容并回到管理页', async () => {
+  it('更新活动时可修改 bounty_rank 并回到管理页', async () => {
     const { updateEvent } = await import('@/app/[locale]/events/actions');
     const formData = new FormData();
     formData.set('eventId', 'event-1');
@@ -118,6 +122,7 @@ describe('events actions', () => {
     formData.set('eventDate', '2026-03-12T10:00');
     formData.set('location', '广州');
     formData.set('maxGuests', '50');
+    formData.set('bountyRank', '4');
 
     await expect(updateEvent(formData)).rejects.toThrow('REDIRECT:/zh/events/event-1/manage?success=updated');
     expect(eventUpdateMock).toHaveBeenCalledTimes(1);
@@ -126,11 +131,27 @@ describe('events actions', () => {
       description: '新描述',
       location: '广州',
       max_guests: 50,
+      bounty_rank: 4,
     });
     expect(eventUpdateMock.mock.calls[0][0]).not.toHaveProperty('status');
   });
 
-  it('更新活动状态时可回到管理页并返回下架提示', async () => {
+  it('bountyRank 超出范围时会被拦截', async () => {
+    const { createEvent } = await import('@/app/[locale]/events/actions');
+    const formData = new FormData();
+    formData.set('title', '测试活动');
+    formData.set('description', '活动描述');
+    formData.set('eventDate', '2026-03-11T15:04');
+    formData.set('location', '深圳');
+    formData.set('maxGuests', '20');
+    formData.set('bountyRank', '7');
+    formData.set('intent', 'draft');
+
+    await expect(createEvent(formData)).rejects.toThrow('REDIRECT:/zh/events/new?error=invalidBountyRank');
+    expect(eventInsertMock).not.toHaveBeenCalled();
+  });
+
+  it('更新活动状态时可回到管理页并返回关闭提示', async () => {
     const { updateEventStatus } = await import('@/app/[locale]/events/actions');
     const formData = new FormData();
     formData.set('eventId', 'event-1');

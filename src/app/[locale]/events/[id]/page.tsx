@@ -12,10 +12,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { RankBadge } from '@/components/features/rank-badge';
+import { SpriteBubble } from '@/components/features/sprite-bubble';
 import { createClient } from '@/lib/supabase/server';
 import { applyToEvent } from '@/app/[locale]/registrations/actions';
 import type {
+  BountyRank,
   EventStatus,
+  HunterLevel,
   RegistrationStatus,
   RegistrationType,
   UserRole,
@@ -37,6 +41,7 @@ type EventDetailEvent = {
   location: string;
   max_guests: number;
   status: EventStatus;
+  bounty_rank: BountyRank;
 };
 
 type OrganizerProfile = {
@@ -77,6 +82,34 @@ function getRegistrationLabel(
   return tEvents(registrationLabelKeyMap[registration.type][registration.status]);
 }
 
+function getSpriteEvaluationKey(levelDiff: number) {
+  if (levelDiff >= 2) {
+    return 'eval_easy';
+  }
+
+  if (levelDiff === 1) {
+    return 'eval_comfortable';
+  }
+
+  if (levelDiff === 0) {
+    return 'eval_matched';
+  }
+
+  if (levelDiff === -1) {
+    return 'eval_challenging';
+  }
+
+  return 'eval_locked';
+}
+
+function getSpriteVariant(levelDiff: number) {
+  if (levelDiff >= 0) {
+    return 'success' as const;
+  }
+
+  return 'warning' as const;
+}
+
 export default async function EventDetailPage({
   params,
   searchParams,
@@ -94,7 +127,7 @@ export default async function EventDetailPage({
 
   const { data: event } = await supabase
     .from('events')
-    .select('id, organizer_id, title, description, target_audience, event_date, location, max_guests, status')
+    .select('id, organizer_id, title, description, target_audience, event_date, location, max_guests, status, bounty_rank')
     .eq('id', id)
     .single();
   const eventDetail = event as EventDetailEvent | null;
@@ -110,17 +143,17 @@ export default async function EventDetailPage({
     .single();
   const organizerProfile = organizer as OrganizerProfile | null;
 
-  let profile: { role: UserRole } | null = null;
+  let profile: { role: UserRole; hunter_level: HunterLevel } | null = null;
   let registration: EventRegistration | null = null;
 
   if (user) {
     const { data: profileData } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, hunter_level')
       .eq('id', user.id)
       .single();
 
-    profile = profileData as { role: UserRole } | null;
+    profile = profileData as { role: UserRole; hunter_level: HunterLevel } | null;
 
     const { data: registrationData } = await supabase
       .from('registrations')
@@ -144,6 +177,7 @@ export default async function EventDetailPage({
       organizer={organizerProfile}
       currentUserId={user?.id ?? null}
       currentUserRole={profile?.role ?? null}
+      hunterLevel={profile?.hunter_level}
       registration={registration}
       error={error}
       success={success}
@@ -156,41 +190,31 @@ export function EventDetailContent({
   organizer,
   currentUserId,
   currentUserRole,
+  hunterLevel,
   registration,
   error,
   success,
 }: {
-  event: {
-    id: string;
-    organizer_id: string;
-    title: string;
-    description: string;
-    target_audience: string | null;
-    event_date: string;
-    location: string;
-    max_guests: number;
-    status: EventStatus;
-  };
-  organizer: {
-    id: string;
-    display_name: string;
-    bio: string | null;
-    industry: string | null;
-    city: string | null;
-    role: UserRole;
-  } | null;
+  event: EventDetailEvent;
+  organizer: OrganizerProfile | null;
   currentUserId: string | null;
   currentUserRole: UserRole | null;
+  hunterLevel?: HunterLevel;
   registration: EventRegistration | null;
   error?: string;
   success?: string;
 }) {
   const tEvents = useTranslations('events');
   const tProfile = useTranslations('profile');
+  const tBounty = useTranslations('bounty');
+  const tSprite = useTranslations('sprite');
   const locale = useLocale();
   const isOwner = currentUserId === event.organizer_id;
-  const canApply = currentUserRole === 'guest' && !registration && event.status === 'published';
+  const isGuest = currentUserRole === 'guest';
+  const isLocked = isGuest && hunterLevel !== undefined && hunterLevel < event.bounty_rank;
+  const canApply = isGuest && !registration && event.status === 'published' && !isLocked;
   const showLoginToApply = !currentUserId && event.status === 'published';
+  const levelDiff = hunterLevel === undefined ? 0 : hunterLevel - event.bounty_rank;
   const date = new Intl.DateTimeFormat(locale === 'zh' ? 'zh-CN' : 'en-US', {
     year: 'numeric',
     month: 'long',
@@ -203,6 +227,7 @@ export function EventDetailContent({
   const organizerName = organizer?.display_name || tProfile('organizerNameFallback');
   const organizerInitial = organizerName.slice(0, 1).toUpperCase();
   const registrationLabel = getRegistrationLabel(registration, tEvents);
+  const spriteMessage = tSprite(getSpriteEvaluationKey(levelDiff));
 
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-background via-background to-muted/20">
@@ -213,9 +238,7 @@ export function EventDetailContent({
               <CardHeader className="gap-4">
                 <div className="flex flex-wrap items-center gap-3">
                   <Badge variant={statusVariantMap[event.status]}>{tEvents(event.status)}</Badge>
-                  <div className="rounded-full border border-border/70 bg-muted/40 px-3 py-1 text-xs tracking-[0.2em] text-muted-foreground uppercase">
-                    {tEvents('eventBadge')}
-                  </div>
+                  <RankBadge level={event.bounty_rank} />
                 </div>
                 <div className="space-y-3">
                   <CardTitle className="text-3xl leading-tight md:text-4xl">
@@ -271,6 +294,8 @@ export function EventDetailContent({
           </div>
 
           <div className="space-y-6">
+            {isGuest ? <SpriteBubble message={spriteMessage} variant={getSpriteVariant(levelDiff)} /> : null}
+
             <Card className="border-border/60 bg-card/85 shadow-lg">
               <CardHeader>
                 <CardTitle>{organizerName}</CardTitle>
@@ -305,6 +330,12 @@ export function EventDetailContent({
                   </div>
                 </div>
 
+                {isLocked ? (
+                  <div className="rounded-xl border border-rose-200/80 bg-rose-50/90 px-4 py-3 text-sm text-rose-950">
+                    {tBounty('rank_required_detail')}
+                  </div>
+                ) : null}
+
                 <div className="flex flex-wrap gap-3">
                   {isOwner ? (
                     <Link href={`/events/${event.id}/manage`}>
@@ -313,16 +344,16 @@ export function EventDetailContent({
                   ) : canApply ? (
                     <form action={applyToEvent}>
                       <input type="hidden" name="eventId" value={event.id} />
-                      <Button type="submit">{tEvents('apply')}</Button>
+                      <Button type="submit">{tBounty('claim')}</Button>
                     </form>
                   ) : registrationLabel ? (
                     <Button disabled>{registrationLabel}</Button>
                   ) : showLoginToApply ? (
                     <Link href={`/auth/login?redirect=/events/${event.id}`}>
-                      <Button>{tEvents('apply')}</Button>
+                      <Button>{tBounty('claim')}</Button>
                     </Link>
                   ) : (
-                    <Button disabled>{tEvents('apply')}</Button>
+                    <Button disabled>{tBounty('claim')}</Button>
                   )}
                   <Link href="/">
                     <Button variant="outline">{tEvents('backToList')}</Button>

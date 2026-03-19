@@ -25,6 +25,7 @@ describe('EventDetailContent', () => {
       event_date: '2026-03-11T15:04:00.000Z',
       location: '深圳',
       max_guests: 20,
+      bounty_rank: 3,
       status: 'published' as const,
     },
     organizer: null,
@@ -43,6 +44,7 @@ describe('EventDetailContent', () => {
     render(
       <EventDetailContent
         {...baseProps}
+        hunterLevel={3}
         registration={{
           type,
           status,
@@ -51,5 +53,32 @@ describe('EventDetailContent', () => {
     );
 
     expect(screen.getByRole('button', { name: label })).toBeDisabled();
+  });
+
+  it('段位不足时显示评估气泡并禁用接单按钮', () => {
+    render(
+      <EventDetailContent
+        {...baseProps}
+        hunterLevel={1}
+        registration={null}
+      />,
+    );
+
+    expect(screen.getByText('eval_locked')).toBeInTheDocument();
+    expect(screen.getByText('rank_required_detail')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'claim' })).toBeDisabled();
+  });
+
+  it('段位足够时允许接单并展示段位徽章', () => {
+    render(
+      <EventDetailContent
+        {...baseProps}
+        hunterLevel={3}
+        registration={null}
+      />,
+    );
+
+    expect(screen.getAllByText('level_gold').length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: 'claim' })).toBeEnabled();
   });
 });

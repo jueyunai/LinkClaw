@@ -1,4 +1,5 @@
 import { useTranslations } from 'next-intl';
+import { HUNTER_LEVEL_META } from '@/types/database';
 import { setRequestLocale } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
@@ -15,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PendingSubmitButton } from '@/components/ui/pending-submit-button';
 import { Textarea } from '@/components/ui/textarea';
-import type { UserRole } from '@/types/database';
+import type { BountyRank, UserRole } from '@/types/database';
 
 export default async function NewEventPage({
   params,
@@ -54,6 +55,8 @@ export default async function NewEventPage({
 
 function NewEventForm({ error }: { error?: string }) {
   const t = useTranslations('events');
+  const tBounty = useTranslations('bounty');
+  const tHunter = useTranslations('hunter');
   const tCommon = useTranslations('common');
 
   return (
@@ -105,6 +108,21 @@ function NewEventForm({ error }: { error?: string }) {
               <div className="space-y-2">
                 <Label htmlFor="maxGuests">{t('maxGuests')}</Label>
                 <Input id="maxGuests" name="maxGuests" type="number" min={1} defaultValue={20} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bountyRank">{tBounty('min_rank')}</Label>
+                <select
+                  id="bountyRank"
+                  name="bountyRank"
+                  defaultValue="1"
+                  className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none focus:border-primary"
+                >
+                  {([1, 2, 3, 4, 5] as BountyRank[]).map((level) => (
+                    <option key={level} value={level}>
+                      {tHunter(`level_${HUNTER_LEVEL_META[level].key}`)}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 

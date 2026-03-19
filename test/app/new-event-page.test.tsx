@@ -67,6 +67,21 @@ describe('NewEventPage', () => {
     expect(screen.getByTestId('new-event-form-actions')).toBeInTheDocument();
   });
 
+  it('渲染最低接单段位选择器，默认青铜且不包含传说', async () => {
+    const page = await NewEventPage({
+      params: Promise.resolve({ locale: 'zh' }),
+      searchParams: Promise.resolve({}),
+    });
+
+    render(page);
+
+    const select = screen.getByLabelText('min_rank') as HTMLSelectElement;
+    expect(select.value).toBe('1');
+    expect(screen.getByRole('option', { name: 'level_bronze' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'level_diamond' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'level_legend' })).not.toBeInTheDocument();
+  });
+
   it('同一表单提交时仅当前按钮显示对应 pending 文案', async () => {
     const formData = new FormData();
     formData.set('intent', 'draft');

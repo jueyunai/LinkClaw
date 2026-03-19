@@ -2,6 +2,17 @@ export type UserRole = "guest" | "organizer";
 export type EventStatus = "draft" | "published" | "closed";
 export type RegistrationType = "applied" | "invited";
 export type RegistrationStatus = "pending" | "accepted" | "rejected";
+export type HunterLevel = 1 | 2 | 3 | 4 | 5 | 6;
+export type BountyRank = 1 | 2 | 3 | 4 | 5;
+
+export const HUNTER_LEVEL_META: Record<HunterLevel, { key: string; color: string }> = {
+  1: { key: 'bronze', color: '#CD7F32' },
+  2: { key: 'silver', color: '#C0C0C0' },
+  3: { key: 'gold', color: '#FFD700' },
+  4: { key: 'platinum', color: '#E5E4E2' },
+  5: { key: 'diamond', color: '#B9F2FF' },
+  6: { key: 'legend', color: '#FF6B35' },
+};
 
 export type Json =
   | string
@@ -19,6 +30,7 @@ export interface Profile {
   industry: string | null;
   city: string | null;
   avatar_url: string | null;
+  hunter_level: HunterLevel;
   created_at: string;
   updated_at: string;
 }
@@ -32,6 +44,7 @@ export interface Event {
   event_date: string;
   location: string;
   max_guests: number;
+  bounty_rank: BountyRank;
   status: EventStatus;
   created_at: string;
   updated_at: string;
@@ -95,13 +108,17 @@ export interface Database {
     Tables: {
       profiles: {
         Row: Profile;
-        Insert: Omit<Profile, 'created_at' | 'updated_at'>;
+        Insert: Omit<Profile, 'created_at' | 'updated_at' | 'hunter_level'> & {
+          hunter_level?: HunterLevel;
+        };
         Update: Partial<Omit<Profile, 'id' | 'created_at' | 'updated_at'>>;
         Relationships: [];
       };
       events: {
         Row: Event;
-        Insert: Omit<Event, 'id' | 'created_at' | 'updated_at'>;
+        Insert: Omit<Event, 'id' | 'created_at' | 'updated_at' | 'bounty_rank'> & {
+          bounty_rank?: BountyRank;
+        };
         Update: Partial<
           Omit<Event, 'id' | 'organizer_id' | 'created_at' | 'updated_at'>
         >;

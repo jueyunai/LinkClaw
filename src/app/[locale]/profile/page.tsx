@@ -1,6 +1,7 @@
 import { useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { redirect } from 'next/navigation';
+import { RankBadge } from '@/components/features/rank-badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -20,6 +21,8 @@ interface ProfileFormValues {
   bio: string | null;
   industry: string | null;
   city: string | null;
+  role?: 'guest' | 'organizer';
+  hunter_level?: 1 | 2 | 3 | 4 | 5 | 6;
 }
 
 export default async function ProfilePage({
@@ -43,7 +46,7 @@ export default async function ProfilePage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('display_name, bio, industry, city')
+    .select('display_name, bio, industry, city, role, hunter_level')
     .eq('id', user.id)
     .single();
   const profileValues = profile as ProfileFormValues | null;
@@ -71,13 +74,25 @@ export function ProfileForm({
   success?: boolean;
 }) {
   const t = useTranslations('profile');
+  const tHunter = useTranslations('hunter');
   const tc = useTranslations('common');
 
   return (
     <Card className="border-border/60 shadow-lg">
-      <CardHeader>
-        <CardTitle className="text-2xl">{t('title')}</CardTitle>
-        <CardDescription>{t('bioPlaceholder')}</CardDescription>
+      <CardHeader className="space-y-4">
+        {profile?.role === 'guest' && profile.hunter_level ? (
+          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-amber-200/60 bg-[linear-gradient(135deg,rgba(255,243,205,0.95),rgba(255,232,183,0.75))] px-4 py-3">
+            <RankBadge level={profile.hunter_level} size="lg" />
+            <div>
+              <CardTitle className="text-xl">{tHunter(`level_${['bronze', 'silver', 'gold', 'platinum', 'diamond', 'legend'][profile.hunter_level - 1]}`)}</CardTitle>
+              <CardDescription>{t('hunterBanner')}</CardDescription>
+            </div>
+          </div>
+        ) : null}
+        <div>
+          <CardTitle className="text-2xl">{t('title')}</CardTitle>
+          <CardDescription>{t('bioPlaceholder')}</CardDescription>
+        </div>
       </CardHeader>
       <CardContent>
         {error ? (

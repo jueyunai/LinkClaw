@@ -161,7 +161,7 @@ function OrganizerEventsContent({
           <div className="space-y-2">
             <p className="text-xs uppercase tracking-[0.3em] text-primary/80">{tMyEvents('organizerConsole')}</p>
             <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
-              {tMyEvents('title')}
+              {tMyEvents('myBounties')}
             </h1>
             <p className="text-sm text-muted-foreground">
               {organizerName} · {events.length} {tEvents('published')}
@@ -256,7 +256,7 @@ function OrganizerEventsContent({
           </div>
         ) : (
           <div className="rounded-[1.5rem] border border-dashed border-border bg-muted/30 px-6 py-16 text-center">
-            <h2 className="text-2xl font-semibold tracking-tight">{tMyEvents('title')}</h2>
+            <h2 className="text-2xl font-semibold tracking-tight">{tMyEvents('myBounties')}</h2>
             <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
               {tMyEvents('emptyOrganizer')}
             </p>
@@ -308,7 +308,7 @@ function GuestEventsContent({
         <div className="mb-8 space-y-2">
           <p className="text-xs uppercase tracking-[0.3em] text-primary/80">{tMyEvents('guestCenter')}</p>
           <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
-            {tMyEvents('title')}
+            {tMyEvents('myClaims')}
           </h1>
           <p className="text-sm text-muted-foreground">{guestName}</p>
         </div>

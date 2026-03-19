@@ -135,6 +135,7 @@ describe('getEventRecommendations', () => {
           location: 'Shanghai',
           event_date: '2026-03-20T10:00:00.000Z',
           status: 'published',
+          bounty_rank: 1,
         },
       ],
     );
@@ -153,6 +154,71 @@ describe('getEventRecommendations', () => {
         source: 'mock',
       },
     ]);
+  });
+
+  it('filters out events above hunter level before recommendation', async () => {
+    mockGetAiRecommendationConfig.mockReturnValue({
+      provider: 'mock',
+      apiFormat: 'openai',
+      apiKey: null,
+      baseUrl: null,
+      modelId: null,
+      modelFast: null,
+      modelStrong: null,
+      path: '/chat/completions',
+      timeoutMs: 30000,
+      temperature: 0.4,
+      maxTokens: 800,
+      defaultLimit: 3,
+      maxCandidates: 5,
+      recommendationCacheTtlHours: 24,
+      profileCacheTtlHours: 72,
+      apiKeyHeader: 'Authorization',
+    });
+
+    mockGetMockEventRecommendations.mockReturnValue([]);
+
+    await getEventRecommendations(
+      {
+        id: 'guest-1',
+        display_name: 'Alice',
+        bio: 'AI builder',
+        industry: 'AI',
+        city: 'Shanghai',
+      },
+      [
+        {
+          id: 'event-1',
+          title: 'Easy Quest',
+          description: 'desc',
+          target_audience: 'AI',
+          location: 'Shanghai',
+          event_date: '2026-03-20T10:00:00.000Z',
+          status: 'published',
+          bounty_rank: 1,
+        },
+        {
+          id: 'event-2',
+          title: 'Hard Quest',
+          description: 'desc',
+          target_audience: 'AI',
+          location: 'Shanghai',
+          event_date: '2026-03-21T10:00:00.000Z',
+          status: 'published',
+          bounty_rank: 4,
+        },
+      ],
+      3,
+      1,
+    );
+
+    expect(mockGetMockEventRecommendations).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'guest-1' }),
+      [
+        expect.objectContaining({ id: 'event-1', bounty_rank: 1 }),
+      ],
+      3,
+    );
   });
 
   it('falls back to mock recommendations when remote pipeline fails', async () => {
@@ -203,6 +269,7 @@ describe('getEventRecommendations', () => {
           location: 'Shanghai',
           event_date: '2026-03-20T10:00:00.000Z',
           status: 'published',
+          bounty_rank: 1,
         },
       ],
     );
@@ -299,6 +366,7 @@ describe('getEventRecommendations', () => {
           location: 'Shanghai',
           event_date: '2026-03-20T10:00:00.000Z',
           status: 'published',
+          bounty_rank: 1,
         },
       ],
     );

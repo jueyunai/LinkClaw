@@ -16,6 +16,7 @@ describe('ProfileForm', () => {
           bio: 'Tech founder',
           industry: 'AI',
           city: 'Shanghai',
+          role: 'organizer',
         }}
         error="保存失败"
         success
@@ -29,5 +30,37 @@ describe('ProfileForm', () => {
     expect(screen.getByText('保存失败')).toBeInTheDocument();
     expect(screen.getByText('saveSuccess')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'save' })).toBeInTheDocument();
+  });
+
+  it('guest 会显示段位徽章，organizer 不显示', () => {
+    const { rerender } = render(
+      <ProfileForm
+        profile={{
+          display_name: 'Alice',
+          bio: 'Tech founder',
+          industry: 'AI',
+          city: 'Shanghai',
+          role: 'guest',
+          hunter_level: 3,
+        }}
+      />,
+    );
+
+    expect(screen.getAllByText('level_gold').length).toBeGreaterThan(0);
+    expect(screen.getByText('hunterBanner')).toBeInTheDocument();
+
+    rerender(
+      <ProfileForm
+        profile={{
+          display_name: 'Bob',
+          bio: 'Organizer',
+          industry: 'Events',
+          city: 'Beijing',
+          role: 'organizer',
+        }}
+      />,
+    );
+
+    expect(screen.queryByText('hunterBanner')).not.toBeInTheDocument();
   });
 });

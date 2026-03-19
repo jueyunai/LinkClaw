@@ -9,7 +9,7 @@ export type GuestProfileInput = Pick<
 
 export type EventDetailInput = Pick<
   Event,
-  'id' | 'title' | 'description' | 'target_audience' | 'location' | 'event_date' | 'status'
+  'id' | 'title' | 'description' | 'target_audience' | 'location' | 'event_date' | 'status' | 'bounty_rank'
 >;
 
 export interface GuestProfile {
