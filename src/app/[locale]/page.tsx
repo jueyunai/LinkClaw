@@ -359,7 +359,7 @@ function HomeContent({
 
             {/* Recommended cards */}
             {recommendedEvents.length > 0 ? (
-              <div className="grid gap-5 lg:grid-cols-3">
+              <div className="grid gap-x-5 gap-y-3 lg:grid-cols-3 lg:grid-rows-[auto_1fr]">
                 {recommendedEvents.map(({ recommendation, event }, i) => {
                   const localizedReasonParams: Record<string, string | number | Date> | undefined =
                     recommendation.matchReasonParams?.keywords
@@ -371,12 +371,12 @@ function HomeContent({
                   return (
                     <div
                       key={event.id}
-                      className="guild-reveal space-y-3"
+                      className="guild-reveal grid grid-rows-subgrid gap-3 lg:row-span-2"
                       style={{ animationDelay: `${0.05 + i * 0.08}s` }}
                     >
                       {/* Recommendation reason card */}
                       <div
-                        className="rounded p-3"
+                        className="flex flex-col rounded p-3"
                         style={{
                           background: 'linear-gradient(135deg, rgba(200,146,42,0.08), rgba(200,146,42,0.04))',
                           border: '1px solid rgba(200,146,42,0.2)',
@@ -390,7 +390,7 @@ function HomeContent({
                             {tRecommendation('reason')}
                           </p>
                           <span
-                            className="rounded px-2 py-0.5 text-[0.6rem] font-bold"
+                            className="shrink-0 rounded px-2 py-0.5 text-[0.6rem] font-bold"
                             style={{
                               background: 'rgba(200,146,42,0.15)',
                               color: '#8b5e1a',

@@ -53,7 +53,7 @@ export async function runMatchmaker(input: {
       },
     ],
     temperature: 0.4,
-    maxTokens: 600,
+    maxTokens: 1200,
   });
 
   if (!response.data || !isMatchResult(response.data)) {

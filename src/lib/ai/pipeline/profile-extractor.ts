@@ -66,10 +66,14 @@ export async function extractGuestProfile(input: GuestProfileInput): Promise<Gue
       },
     ],
     temperature: 0.1,
-    maxTokens: 400,
+    maxTokens: 1024,
   });
 
   if (!response.data || !isGuestProfile(response.data)) {
+    console.error('[AI] extractGuestProfile 校验失败', {
+      error: response.error,
+      data: response.data,
+    });
     throw new Error(response.error ?? '嘉宾画像抽取失败');
   }
 
@@ -93,10 +97,14 @@ export async function extractEventProfile(input: EventDetailInput): Promise<Even
       },
     ],
     temperature: 0.1,
-    maxTokens: 400,
+    maxTokens: 1024,
   });
 
   if (!response.data || !isEventProfile(response.data)) {
+    console.error('[AI] extractEventProfile 校验失败', {
+      error: response.error,
+      data: response.data,
+    });
     throw new Error(response.error ?? '活动画像抽取失败');
   }
 

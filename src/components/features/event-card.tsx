@@ -244,7 +244,7 @@ function MetaItem({ label, value, muted }: { label: string; value: string; muted
       </p>
       <p
         className={cn(
-          'mt-0.5 text-[0.82rem] font-medium leading-snug',
+          'mt-0.5 line-clamp-2 text-[0.82rem] font-medium leading-snug',
           muted ? 'text-[#8a7060]' : 'text-[#3d2010]',
         )}
         style={{ fontFamily: 'var(--font-crimson)' }}

@@ -60,6 +60,8 @@ export async function chatJsonCompletion<T>(params: {
     });
 
     if (!response.ok) {
+      const errorBody = await response.text().catch(() => '');
+      console.error('[AI] HTTP 请求失败:', response.status, errorBody.slice(0, 500));
       return {
         data: null,
         error: `AI 推荐请求失败：${response.status}`,
@@ -80,9 +82,12 @@ export async function chatJsonCompletion<T>(params: {
       };
     };
 
-    const content = payload.choices?.[0]?.message?.content;
+    console.log('[AI] Raw API response payload:', JSON.stringify(payload, null, 2).slice(0, 2000));
 
-    if (!content) {
+    const rawContent = payload.choices?.[0]?.message?.content;
+
+    if (!rawContent) {
+      console.error('[AI] 响应内容为空, choices:', JSON.stringify(payload.choices));
       return {
         data: null,
         error: 'AI 推荐响应为空',
@@ -93,6 +98,18 @@ export async function chatJsonCompletion<T>(params: {
         },
       };
     }
+
+    // Strip markdown code fences (```json ... ```) that some models add
+    let content = rawContent.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+    // Also try extracting JSON from within markdown if the above didn't help
+    if (!content.startsWith('{') && !content.startsWith('[')) {
+      const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        content = jsonMatch[0];
+      }
+    }
+
+    console.log('[AI] Cleaned content (first 500 chars):', content.slice(0, 500));
 
     try {
       return {
@@ -105,6 +122,7 @@ export async function chatJsonCompletion<T>(params: {
         },
       };
     } catch {
+      console.error('[AI] JSON.parse 失败, rawContent:', rawContent.slice(0, 1000));
       return {
         data: null,
         error: 'AI 推荐返回了非法 JSON',

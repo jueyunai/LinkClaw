@@ -60,7 +60,7 @@ export async function evaluateGuestForEvent(input: {
       },
     ],
     temperature: 0.3,
-    maxTokens: 500,
+    maxTokens: 1024,
   });
 
   if (!response.data || !isActivityEvaluation(response.data)) {

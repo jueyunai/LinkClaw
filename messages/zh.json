@@ -168,7 +168,7 @@
     "registeredIntro": "查看你已经接下的悬赏与当前处理状态。",
     "invitedIntro": "查看并回应悬赏人发来的指名委托。",
     "emptyRegistered": "你还没有接下任何悬赏。",
-    "emptyInvited": "暂时没有新的指名委托。",
+    "emptyInvited": "暂无悬赏",
     "viewEvent": "查看悬赏",
     "manageEvent": "悬赏管理",
     "manageEventIntro": "查看推荐猎人并跟进已发出的指名委托。",
@@ -188,7 +188,7 @@
     "rejectInvitation": "拒绝",
     "goToBountyHall": "去接单",
     "questClosedHint": "该悬赏已关闭，无法继续操作",
-    "eventUnavailable": "关联悬赏已被移除或暂不可见"
+    "eventUnavailable": "暂无悬赏"
   },
   "bounty": {
     "hall_title": "悬赏大厅",

@@ -168,7 +168,7 @@
     "registeredIntro": "Review the quests you’ve claimed and their latest status.",
     "invitedIntro": "Review and respond to direct commissions from commissioners.",
     "emptyRegistered": "You haven’t claimed any quests yet.",
-    "emptyInvited": "There are no new direct commissions right now.",
+    "emptyInvited": "No quests yet.",
     "viewEvent": "View Quest",
     "manageEvent": "Quest Management",
     "manageEventIntro": "Review recommended hunters and track the direct commissions you’ve sent.",
@@ -188,7 +188,7 @@
     "rejectInvitation": "Reject",
     "goToBountyHall": "Browse Quests",
     "questClosedHint": "This quest has been closed and can no longer be acted on",
-    "eventUnavailable": "The associated quest has been removed or is no longer visible"
+    "eventUnavailable": "No quests yet"
   },
   "bounty": {
     "hall_title": "Bounty Hall",
