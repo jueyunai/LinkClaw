@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { FormActions } from '@/components/ui/form-actions';
+import { BackButton } from '@/components/ui/back-button';
 import { PendingSubmitButton } from '@/components/ui/pending-submit-button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { inviteGuest, respondToApplication } from '@/app/[locale]/registrations/actions';
@@ -308,6 +309,7 @@ export function ManageEventContent({
       <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
         <div className="space-y-8">
           <div className="space-y-3">
+            <BackButton />
             <p className="text-xs uppercase tracking-[0.3em] text-primary/80">{tMyEvents('manageEvent')}</p>
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="space-y-2">

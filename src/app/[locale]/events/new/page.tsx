@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PendingSubmitButton } from '@/components/ui/pending-submit-button';
 import { Textarea } from '@/components/ui/textarea';
+import { BackButton } from '@/components/ui/back-button';
 import type { BountyRank, UserRole } from '@/types/database';
 
 export default async function NewEventPage({
@@ -61,6 +62,8 @@ function NewEventForm({ error }: { error?: string }) {
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-3xl items-center px-4 py-10">
+      <div className="w-full">
+      <BackButton />
       <Card className="w-full border-border/60 shadow-lg">
         <CardHeader>
           <CardTitle className="text-2xl">{t('create')}</CardTitle>
@@ -146,6 +149,7 @@ function NewEventForm({ error }: { error?: string }) {
           </form>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

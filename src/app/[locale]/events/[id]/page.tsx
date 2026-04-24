@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { RankBadge } from '@/components/features/rank-badge';
 import { SpriteBubble } from '@/components/features/sprite-bubble';
+import { BackButton } from '@/components/ui/back-button';
 import { createClient } from '@/lib/supabase/server';
 import { applyToEvent } from '@/app/[locale]/registrations/actions';
 import { HUNTER_LEVEL_META } from '@/types/database';
@@ -223,14 +224,7 @@ export function EventDetailContent({
     >
       <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
         {/* Back link */}
-        <Link
-          href="/"
-          className="mb-6 inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] transition-colors hover:text-[#c8922a]"
-          style={{ color: '#8a7060', fontFamily: 'var(--font-cinzel)' }}
-        >
-          <span>←</span>
-          <span>{tEvents('backToList')}</span>
-        </Link>
+        <BackButton />
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,0.8fr)]">
           {/* Main content */}

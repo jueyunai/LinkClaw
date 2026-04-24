@@ -14,7 +14,11 @@ import {
 import { createClient } from '@/lib/supabase/server';
 import { updateEventStatus } from '@/app/[locale]/events/actions';
 import { respondToInvitation } from '@/app/[locale]/registrations/actions';
-import type { EventStatus, RegistrationStatus, UserRole } from '@/types/database';
+import { CloseQuestButton } from '@/components/features/close-quest-button';
+import { SearchParamsToast } from '@/components/features/search-params-toast';
+import { RankBadge } from '@/components/features/rank-badge';
+import { BackButton } from '@/components/ui/back-button';
+import type { EventStatus, HunterLevel, RegistrationStatus, UserRole } from '@/types/database';
 
 const eventStatusVariantMap: Record<EventStatus, 'secondary' | 'default' | 'outline'> = {
   draft: 'secondary',
@@ -49,10 +53,10 @@ export default async function MyEventsPage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, display_name')
+    .select('role, display_name, bio, industry, city, hunter_level')
     .eq('id', user.id)
     .single();
-  const currentProfile = profile as { role: UserRole; display_name: string } | null;
+  const currentProfile = profile as { role: UserRole; display_name: string; bio: string | null; industry: string | null; city: string | null; hunter_level: HunterLevel } | null;
 
   if (!currentProfile) {
     redirect(`/${locale}`);
@@ -70,6 +74,9 @@ export default async function MyEventsPage({
     return (
       <OrganizerEventsContent
         organizerName={currentProfile.display_name}
+        organizerBio={currentProfile.bio}
+        organizerIndustry={currentProfile.industry}
+        organizerCity={currentProfile.city}
         events={(events ?? []) as Array<{
           id: string;
           title: string;
@@ -121,6 +128,10 @@ export default async function MyEventsPage({
   return (
     <GuestEventsContent
       guestName={currentProfile.display_name}
+      guestBio={currentProfile.bio}
+      guestIndustry={currentProfile.industry}
+      guestCity={currentProfile.city}
+      hunterLevel={currentProfile.hunter_level}
       registrations={guestRegistrations.map((registration) => ({
         ...registration,
         event: eventsById.get(registration.event_id) ?? null,
@@ -133,11 +144,17 @@ export default async function MyEventsPage({
 
 function OrganizerEventsContent({
   organizerName,
+  organizerBio,
+  organizerIndustry,
+  organizerCity,
   events,
   error,
   success,
 }: {
   organizerName: string;
+  organizerBio: string | null;
+  organizerIndustry: string | null;
+  organizerCity: string | null;
   events: Array<{
     id: string;
     title: string;
@@ -152,52 +169,66 @@ function OrganizerEventsContent({
 }) {
   const tEvents = useTranslations('events');
   const tMyEvents = useTranslations('myEvents');
+  const tProfile = useTranslations('profile');
   const locale = useLocale();
 
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-background via-background to-muted/20">
       <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-          <div className="space-y-2">
+        <SearchParamsToast
+          error={error}
+          success={success}
+          successMessages={{
+            published: tEvents('eventPublished'),
+            republished: tEvents('eventPublished'),
+            closed: tEvents('eventClosed'),
+            draft_saved: tEvents('draftSaved'),
+          }}
+        />
+        <BackButton />
+        {/* Header with profile summary */}
+        <div className="mb-6 flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+          <div className="flex-1 space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-primary/80">{tMyEvents('organizerConsole')}</p>
             <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
               {tMyEvents('myBounties')}
             </h1>
-            <p className="text-sm text-muted-foreground">
-              {organizerName} · {events.length} {tEvents('published')}
-            </p>
+            {/* Profile summary inline */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">{organizerName}</span>
+              <span>·</span>
+              <span>{events.length} {tEvents('published')}</span>
+              {organizerIndustry ? (
+                <>
+                  <span>·</span>
+                  <span>{tMyEvents('industryLabel')}: {organizerIndustry}</span>
+                </>
+              ) : null}
+              {organizerCity ? (
+                <>
+                  <span>·</span>
+                  <span>{tMyEvents('cityLabel')}: {organizerCity}</span>
+                </>
+              ) : null}
+            </div>
+            {organizerBio ? (
+              <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground/80 line-clamp-2">
+                {organizerBio}
+              </p>
+            ) : null}
           </div>
-          <Link href="/events/new">
-            <Button>{tEvents('create')}</Button>
-          </Link>
+          <div className="flex shrink-0 items-center gap-2">
+            <Link href="/profile">
+              <Button variant="outline" size="sm">{tMyEvents('editProfile')}</Button>
+            </Link>
+            <Link href="/events/new">
+              <Button>{tEvents('create')}</Button>
+            </Link>
+          </div>
         </div>
 
-        {error ? (
-          <div className="mb-4 rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {error}
-          </div>
-        ) : null}
-
-        {success === 'published' || success === 'republished' ? (
-          <div className="mb-4 rounded-lg bg-primary/10 px-4 py-3 text-sm text-primary">
-            {tEvents('eventPublished')}
-          </div>
-        ) : null}
-
-        {success === 'closed' ? (
-          <div className="mb-4 rounded-lg bg-primary/10 px-4 py-3 text-sm text-primary">
-            {tEvents('eventClosed')}
-          </div>
-        ) : null}
-
-        {success === 'draft_saved' ? (
-          <div className="mb-4 rounded-lg bg-primary/10 px-4 py-3 text-sm text-primary">
-            {tEvents('draftSaved')}
-          </div>
-        ) : null}
-
         {events.length > 0 ? (
-          <div className="grid gap-5">
+          <div className="divide-y divide-border/60 rounded-xl border border-border/60 bg-card/85 shadow-sm">
             {events.map((event) => {
               const date = new Intl.DateTimeFormat(locale === 'zh' ? 'zh-CN' : 'en-US', {
                 year: 'numeric',
@@ -208,26 +239,21 @@ function OrganizerEventsContent({
               }).format(new Date(event.event_date));
 
               return (
-                <Card key={event.id} className="border-border/60 bg-card/85 shadow-sm">
-                  <CardHeader className="gap-4 md:flex-row md:items-start md:justify-between">
-                    <div className="space-y-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant={eventStatusVariantMap[event.status]}>
-                          {tEvents(event.status)}
-                        </Badge>
-                        <CardTitle className="text-xl">{event.title}</CardTitle>
-                      </div>
-                      <CardDescription className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-                        <span>{tEvents('eventDate')} · {date}</span>
-                        <span>{tEvents('location')} · {event.location}</span>
-                        <span>{tEvents('maxGuests')} · {event.max_guests}</span>
-                      </CardDescription>
+                <div key={event.id} className="flex flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between">
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant={eventStatusVariantMap[event.status]}>
+                        {tEvents(event.status)}
+                      </Badge>
+                      <span className="text-base font-semibold truncate">{event.title}</span>
                     </div>
-                    <Link href={`/events/${event.id}/manage`}>
-                      <Button variant="outline" size="sm">{tEvents('manage')}</Button>
-                    </Link>
-                  </CardHeader>
-                  <CardContent className="flex flex-wrap items-center gap-2 border-t bg-muted/20 py-4">
+                    <p className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                      <span>{tEvents('eventDate')} · {date}</span>
+                      <span>{tEvents('location')} · {event.location}</span>
+                      <span>{tEvents('maxGuests')} · {event.max_guests}</span>
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
                     {event.status !== 'published' ? (
                       <form action={updateEventStatus}>
                         <input type="hidden" name="eventId" value={event.id} />
@@ -240,17 +266,14 @@ function OrganizerEventsContent({
                     ) : null}
 
                     {event.status === 'published' ? (
-                      <form action={updateEventStatus}>
-                        <input type="hidden" name="eventId" value={event.id} />
-                        <input type="hidden" name="status" value="closed" />
-                        <input type="hidden" name="returnTo" value="my-events" />
-                        <Button type="submit" size="sm" variant="outline">
-                          {tEvents('unpublish')}
-                        </Button>
-                      </form>
+                      <CloseQuestButton eventId={event.id} />
                     ) : null}
-                  </CardContent>
-                </Card>
+
+                    <Link href={`/events/${event.id}/manage`}>
+                      <Button variant="outline" size="sm">{tEvents('manage')}</Button>
+                    </Link>
+                  </div>
+                </div>
               );
             })}
           </div>
@@ -274,11 +297,19 @@ function OrganizerEventsContent({
 
 function GuestEventsContent({
   guestName,
+  guestBio,
+  guestIndustry,
+  guestCity,
+  hunterLevel,
   registrations,
   error,
   success,
 }: {
   guestName: string;
+  guestBio: string | null;
+  guestIndustry: string | null;
+  guestCity: string | null;
+  hunterLevel: HunterLevel;
   registrations: Array<{
     id: string;
     event_id: string;
@@ -305,31 +336,52 @@ function GuestEventsContent({
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-background via-background to-muted/20">
       <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
-        <div className="mb-8 space-y-2">
-          <p className="text-xs uppercase tracking-[0.3em] text-primary/80">{tMyEvents('guestCenter')}</p>
-          <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
-            {tMyEvents('myClaims')}
-          </h1>
-          <p className="text-sm text-muted-foreground">{guestName}</p>
+        <BackButton />
+        {/* Header with profile summary — mirrors organizer layout */}
+        <div className="mb-6 flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+          <div className="flex-1 space-y-3">
+            <p className="text-xs uppercase tracking-[0.3em] text-primary/80">{tMyEvents('guestCenter')}</p>
+            <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
+              {tMyEvents('myClaims')}
+            </h1>
+            {/* Profile summary inline */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">{guestName}</span>
+              <RankBadge level={hunterLevel} />
+              {guestIndustry ? (
+                <>
+                  <span>·</span>
+                  <span>{tMyEvents('industryLabel')}: {guestIndustry}</span>
+                </>
+              ) : null}
+              {guestCity ? (
+                <>
+                  <span>·</span>
+                  <span>{tMyEvents('cityLabel')}: {guestCity}</span>
+                </>
+              ) : null}
+            </div>
+            {guestBio ? (
+              <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground/80 line-clamp-2">
+                {guestBio}
+              </p>
+            ) : null}
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Link href="/profile">
+              <Button variant="outline" size="sm">{tMyEvents('editProfile')}</Button>
+            </Link>
+          </div>
         </div>
 
-        {error ? (
-          <div className="mb-4 rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {error}
-          </div>
-        ) : null}
-
-        {success === 'invitation_accepted' ? (
-          <div className="mb-4 rounded-lg bg-primary/10 px-4 py-3 text-sm text-primary">
-            {tMyEvents('invitationAccepted')}
-          </div>
-        ) : null}
-
-        {success === 'invitation_rejected' ? (
-          <div className="mb-4 rounded-lg bg-primary/10 px-4 py-3 text-sm text-primary">
-            {tMyEvents('invitationRejected')}
-          </div>
-        ) : null}
+        <SearchParamsToast
+          error={error}
+          success={success}
+          successMessages={{
+            invitation_accepted: tMyEvents('invitationAccepted'),
+            invitation_rejected: tMyEvents('invitationRejected'),
+          }}
+        />
 
         <div className="grid gap-8 lg:grid-cols-2">
           <section className="space-y-4">
@@ -342,7 +394,14 @@ function GuestEventsContent({
                 <GuestRegistrationCard key={item.id} item={item} title={tMyEvents('registered')} />
               ))
             ) : (
-              <EmptyState text={tMyEvents('emptyRegistered')} />
+              <div className="rounded-[1.25rem] border border-dashed border-border bg-muted/30 px-5 py-10 text-center">
+                <p className="text-sm text-muted-foreground">{tMyEvents('emptyRegistered')}</p>
+                <div className="mt-4">
+                  <Link href="/">
+                    <Button variant="outline" size="sm">{tMyEvents('goToBountyHall')}</Button>
+                  </Link>
+                </div>
+              </div>
             )}
           </section>
 
@@ -436,25 +495,39 @@ export function GuestInvitationCard({
   const tEvents = useTranslations('events');
   const tMyEvents = useTranslations('myEvents');
   const locale = useLocale();
-  const date = item.event
-    ? new Intl.DateTimeFormat(locale === 'zh' ? 'zh-CN' : 'en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      }).format(new Date(item.event.event_date))
-    : '-';
+
+  /* Event has been deleted or is no longer accessible */
+  if (!item.event) {
+    return (
+      <Card className="border-border/60 bg-card/85 shadow-sm opacity-60">
+        <CardHeader className="gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={registrationStatusVariantMap[item.status]}>{tMyEvents(item.status)}</Badge>
+            <CardTitle className="text-xl">{tMyEvents('invited')}</CardTitle>
+          </div>
+          <CardDescription>{tMyEvents('eventUnavailable')}</CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
+
+  const date = new Intl.DateTimeFormat(locale === 'zh' ? 'zh-CN' : 'en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(item.event.event_date));
 
   return (
     <Card className="border-border/60 bg-card/85 shadow-sm">
       <CardHeader className="gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant={registrationStatusVariantMap[item.status]}>{tMyEvents(item.status)}</Badge>
-          <CardTitle className="text-xl">{item.event?.title || tMyEvents('invited')}</CardTitle>
+          <CardTitle className="text-xl">{item.event.title}</CardTitle>
         </div>
         <CardDescription>
-          {tEvents('eventDate')} · {date} · {tEvents('location')} · {item.event?.location || '-'}
+          {tEvents('eventDate')} · {date} · {tEvents('location')} · {item.event.location}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -465,25 +538,26 @@ export function GuestInvitationCard({
           </div>
         ) : null}
         <div className="flex flex-wrap items-center gap-2">
-          {item.status === 'pending' ? (
+          {item.status === 'pending' && item.event.status === 'published' ? (
             <>
               <form action={respondToInvitation}>
                 <input type="hidden" name="registrationId" value={item.id} />
                 <input type="hidden" name="status" value="accepted" />
-                <Button type="submit" size="sm">{tMyEvents('accepted')}</Button>
+                <Button type="submit" size="sm">{tMyEvents('acceptInvitation')}</Button>
               </form>
               <form action={respondToInvitation}>
                 <input type="hidden" name="registrationId" value={item.id} />
                 <input type="hidden" name="status" value="rejected" />
-                <Button type="submit" size="sm" variant="outline">{tMyEvents('rejected')}</Button>
+                <Button type="submit" size="sm" variant="outline">{tMyEvents('rejectInvitation')}</Button>
               </form>
             </>
           ) : null}
-          {item.event ? (
-            <Link href={`/events/${item.event.id}`}>
-              <Button variant="outline" size="sm">{tMyEvents('viewEvent')}</Button>
-            </Link>
+          {item.status === 'pending' && item.event.status === 'closed' ? (
+            <span className="text-xs text-muted-foreground">{tMyEvents('questClosedHint')}</span>
           ) : null}
+          <Link href={`/events/${item.event.id}`}>
+            <Button variant="outline" size="sm">{tMyEvents('viewEvent')}</Button>
+          </Link>
         </div>
       </CardContent>
     </Card>

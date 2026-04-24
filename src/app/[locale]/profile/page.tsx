@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { createClient } from '@/lib/supabase/server';
+import { BackButton } from '@/components/ui/back-button';
 import { updateProfile } from './actions';
 
 interface ProfileFormValues {
@@ -55,6 +56,7 @@ export default async function ProfilePage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
+      <BackButton />
       <ProfileForm
         profile={profileValues}
         error={error}

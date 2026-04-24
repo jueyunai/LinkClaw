@@ -4,6 +4,7 @@ import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { Navbar } from '@/components/layout/navbar';
+import { Toaster } from '@/components/ui/sonner';
 import '../globals.css';
 import { Cinzel, Crimson_Pro } from 'next/font/google';
 
@@ -51,6 +52,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           <Navbar />
           {children}
+          <Toaster position="top-center" richColors />
         </NextIntlClientProvider>
       </body>
     </html>

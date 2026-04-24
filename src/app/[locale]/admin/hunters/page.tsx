@@ -13,6 +13,7 @@ import {
 import { isAdmin } from '@/lib/admin';
 import { createClient } from '@/lib/supabase/server';
 import type { HunterLevel } from '@/types/database';
+import { BackButton } from '@/components/ui/back-button';
 import { updateHunterLevel } from '../actions';
 
 type HunterProfile = {
@@ -83,6 +84,7 @@ function HuntersContent({
       <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
         <div className="space-y-6">
           <div className="space-y-2">
+            <BackButton />
             <p className="text-xs font-semibold uppercase tracking-[0.32em] text-primary/80">{tAdmin('label')}</p>
             <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{tAdmin('huntersTitle')}</h1>
             <p className="max-w-3xl text-sm leading-6 text-muted-foreground">{tAdmin('huntersDescription')}</p>
