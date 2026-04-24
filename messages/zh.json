@@ -57,7 +57,7 @@
       },
       "guancha": {
         "name": "观猹登录",
-        "action": "使用观猹继续",
+        "action": "使用 WATCHA 登录",
         "unavailable": "观猹登录即将开放。"
       }
     }

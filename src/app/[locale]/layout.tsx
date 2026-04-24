@@ -5,6 +5,22 @@ import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { Navbar } from '@/components/layout/navbar';
 import '../globals.css';
+import { Cinzel, Crimson_Pro } from 'next/font/google';
+
+const cinzel = Cinzel({
+  subsets: ['latin'],
+  variable: '--font-cinzel',
+  display: 'swap',
+  weight: ['400', '600', '700', '900'],
+});
+
+const crimsonPro = Crimson_Pro({
+  subsets: ['latin'],
+  variable: '--font-crimson',
+  display: 'swap',
+  weight: ['300', '400', '500', '600'],
+  style: ['normal', 'italic'],
+});
 
 export const metadata: Metadata = {
   title: 'LinkClaw - AI 活动智能匹配平台',
@@ -30,7 +46,7 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={`${cinzel.variable} ${crimsonPro.variable}`}>
       <body className="antialiased">
         <NextIntlClientProvider messages={messages}>
           <Navbar />

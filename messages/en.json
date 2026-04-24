@@ -57,7 +57,7 @@
       },
       "guancha": {
         "name": "Guancha login",
-        "action": "Continue with Guancha",
+        "action": "Sign in with WATCHA",
         "unavailable": "Guancha login will be available soon."
       }
     }

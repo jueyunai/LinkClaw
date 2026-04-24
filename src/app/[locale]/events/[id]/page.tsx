@@ -2,20 +2,11 @@ import { useLocale, useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { RankBadge } from '@/components/features/rank-badge';
 import { SpriteBubble } from '@/components/features/sprite-bubble';
 import { createClient } from '@/lib/supabase/server';
 import { applyToEvent } from '@/app/[locale]/registrations/actions';
+import { HUNTER_LEVEL_META } from '@/types/database';
 import type {
   BountyRank,
   EventStatus,
@@ -25,11 +16,6 @@ import type {
   UserRole,
 } from '@/types/database';
 
-const statusVariantMap: Record<EventStatus, 'secondary' | 'default' | 'outline'> = {
-  draft: 'secondary',
-  published: 'default',
-  closed: 'outline',
-};
 
 type EventDetailEvent = {
   id: string;
@@ -228,142 +214,292 @@ export function EventDetailContent({
   const organizerInitial = organizerName.slice(0, 1).toUpperCase();
   const registrationLabel = getRegistrationLabel(registration, tEvents);
   const spriteMessage = tSprite(getSpriteEvaluationKey(levelDiff));
+  const rankMeta = HUNTER_LEVEL_META[event.bounty_rank];
 
   return (
-    <main className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-background via-background to-muted/20">
+    <main
+      className="min-h-[calc(100vh-4rem)]"
+      style={{ background: 'linear-gradient(180deg, #f5ead6 0%, #f8f2e4 100%)' }}
+    >
       <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
+        {/* Back link */}
+        <Link
+          href="/"
+          className="mb-6 inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] transition-colors hover:text-[#c8922a]"
+          style={{ color: '#8a7060', fontFamily: 'var(--font-cinzel)' }}
+        >
+          <span>←</span>
+          <span>{tEvents('backToList')}</span>
+        </Link>
+
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,0.8fr)]">
-          <div className="space-y-6">
-            <Card className="border-border/60 bg-card/80 shadow-xl backdrop-blur">
-              <CardHeader className="gap-4">
-                <div className="flex flex-wrap items-center gap-3">
-                  <Badge variant={statusVariantMap[event.status]}>{tEvents(event.status)}</Badge>
+          {/* Main content */}
+          <div className="space-y-5">
+            {/* Title card */}
+            <div
+              className="relative overflow-hidden rounded-lg"
+              style={{
+                background: 'linear-gradient(160deg, #fdf8f0 0%, #f8f0e0 100%)',
+                border: '1px solid rgba(180,140,80,0.3)',
+                boxShadow: '0 4px 24px rgba(61,31,10,0.1), inset 0 1px 0 rgba(255,240,180,0.4)',
+              }}
+            >
+              {/* Rank color bar */}
+              <div
+                className="absolute inset-y-0 left-0 w-1"
+                style={{
+                  background: `linear-gradient(180deg, ${rankMeta?.color ?? '#c8922a'}cc, ${rankMeta?.color ?? '#c8922a'}44)`,
+                }}
+              />
+
+              <div className="pl-5 pr-6 pt-6 pb-6">
+                {/* Status + rank */}
+                <div className="mb-4 flex flex-wrap items-center gap-2">
+                  <span
+                    className="rounded px-2.5 py-0.5 text-[0.6rem] font-semibold uppercase tracking-[0.2em]"
+                    style={{
+                      background: 'rgba(200,146,42,0.12)',
+                      color: '#c8922a',
+                      border: '1px solid rgba(200,146,42,0.25)',
+                      fontFamily: 'var(--font-cinzel)',
+                    }}
+                  >
+                    {tEvents(event.status)}
+                  </span>
                   <RankBadge level={event.bounty_rank} />
                 </div>
-                <div className="space-y-3">
-                  <CardTitle className="text-3xl leading-tight md:text-4xl">
-                    {event.title}
-                  </CardTitle>
-                  <CardDescription className="max-w-3xl text-base leading-7 text-muted-foreground">
-                    {event.description}
-                  </CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
+
+                {/* Title */}
+                <h1
+                  className="text-3xl font-bold leading-tight md:text-4xl"
+                  style={{ fontFamily: 'var(--font-cinzel)', color: '#2a1206' }}
+                >
+                  {event.title}
+                </h1>
+
+                {/* Divider */}
+                <div
+                  className="my-4 h-[1px]"
+                  style={{ background: 'linear-gradient(90deg, rgba(180,140,80,0.4), transparent)' }}
+                />
+
+                {/* Description */}
+                <p
+                  className="text-base leading-relaxed"
+                  style={{ color: '#5a3a20', fontFamily: 'var(--font-crimson)', fontStyle: 'italic', fontSize: '1.05rem' }}
+                >
+                  {event.description}
+                </p>
+
+                {/* Alerts */}
                 {error ? (
-                  <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                  <div
+                    className="mt-4 rounded px-4 py-3 text-sm"
+                    style={{ background: 'rgba(185,28,28,0.08)', border: '1px solid rgba(185,28,28,0.2)', color: '#7f1d1d' }}
+                  >
                     {error}
                   </div>
                 ) : null}
                 {success === 'applied' ? (
-                  <div className="rounded-lg bg-primary/10 px-4 py-3 text-sm text-primary">
+                  <div
+                    className="mt-4 rounded px-4 py-3 text-sm"
+                    style={{ background: 'rgba(200,146,42,0.1)', border: '1px solid rgba(200,146,42,0.25)', color: '#8b5e1a' }}
+                  >
                     {tEvents('applied')}
                   </div>
                 ) : null}
-                <div className="grid gap-4 rounded-2xl border border-border/60 bg-muted/30 p-5 md:grid-cols-3">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                      {tEvents('eventDate')}
-                    </p>
-                    <p className="mt-2 text-sm font-medium leading-6">{date}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                      {tEvents('location')}
-                    </p>
-                    <p className="mt-2 text-sm font-medium leading-6">{event.location}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                      {tEvents('maxGuests')}
-                    </p>
-                    <p className="mt-2 text-sm font-medium leading-6">{event.max_guests}</p>
-                  </div>
+
+                {/* Meta grid */}
+                <div
+                  className="mt-5 grid gap-4 rounded-lg p-5 md:grid-cols-3"
+                  style={{ background: 'rgba(200,146,42,0.05)', border: '1px solid rgba(180,140,80,0.2)' }}
+                >
+                  <MetaField label={tEvents('eventDate')} value={date} />
+                  <MetaField label={tEvents('location')} value={event.location} />
+                  <MetaField label={tEvents('maxGuests')} value={String(event.max_guests)} />
                 </div>
 
-                <div className="rounded-2xl border border-border/60 bg-background/70 p-5">
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                {/* Target audience */}
+                <div
+                  className="mt-4 rounded-lg p-5"
+                  style={{ background: 'rgba(245,234,210,0.5)', border: '1px solid rgba(180,140,80,0.2)' }}
+                >
+                  <p
+                    className="mb-2 text-[0.6rem] font-semibold uppercase tracking-[0.25em]"
+                    style={{ color: '#8a7060', fontFamily: 'var(--font-cinzel)' }}
+                  >
                     {tEvents('targetAudience')}
                   </p>
-                  <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-foreground/90">
+                  <p
+                    className="whitespace-pre-wrap text-sm leading-relaxed"
+                    style={{ color: '#5a3a20', fontFamily: 'var(--font-crimson)' }}
+                  >
                     {event.target_audience || tEvents('targetAudiencePlaceholder')}
                   </p>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-6">
-            {isGuest ? <SpriteBubble message={spriteMessage} variant={getSpriteVariant(levelDiff)} /> : null}
+          {/* Sidebar */}
+          <div className="space-y-5">
+            {/* Sprite evaluation */}
+            {isGuest ? (
+              <SpriteBubble message={spriteMessage} variant={getSpriteVariant(levelDiff)} />
+            ) : null}
 
-            <Card className="border-border/60 bg-card/85 shadow-lg">
-              <CardHeader>
-                <CardTitle>{organizerName}</CardTitle>
-                <CardDescription>
-                  {organizer?.role === 'organizer' ? tProfile('organizerProfile') : tProfile('title')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+            {/* Organizer + action card */}
+            <div
+              className="rounded-lg overflow-hidden"
+              style={{
+                background: 'linear-gradient(160deg, #fdf8f0 0%, #f8f0e0 100%)',
+                border: '1px solid rgba(180,140,80,0.3)',
+                boxShadow: '0 4px 20px rgba(61,31,10,0.08), inset 0 1px 0 rgba(255,240,180,0.3)',
+              }}
+            >
+              {/* Organizer header */}
+              <div
+                className="px-5 py-4"
+                style={{ borderBottom: '1px solid rgba(180,140,80,0.2)' }}
+              >
+                <p
+                  className="mb-3 text-[0.58rem] font-semibold uppercase tracking-[0.25em]"
+                  style={{ color: '#8a7060', fontFamily: 'var(--font-cinzel)' }}
+                >
+                  {tProfile('organizerProfile')}
+                </p>
                 <div className="flex items-center gap-3">
-                  <Avatar size="lg">
-                    <AvatarFallback>{organizerInitial}</AvatarFallback>
-                  </Avatar>
+                  <div
+                    className="flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-bold"
+                    style={{
+                      background: 'radial-gradient(circle at 35% 35%, #c8922a, #8b5e1a)',
+                      color: '#2a1206',
+                      fontFamily: 'var(--font-cinzel)',
+                    }}
+                  >
+                    {organizerInitial}
+                  </div>
                   <div>
-                    <p className="font-medium">{organizerName}</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p
+                      className="font-semibold text-sm"
+                      style={{ color: '#3d2010', fontFamily: 'var(--font-cinzel)' }}
+                    >
+                      {organizerName}
+                    </p>
+                    <p
+                      className="text-xs"
+                      style={{ color: '#8a7060', fontFamily: 'var(--font-crimson)', fontStyle: 'italic' }}
+                    >
                       {organizer?.industry || tProfile('organizerRoleFallback')}
                     </p>
                   </div>
                 </div>
+              </div>
 
-                <div className="space-y-3 rounded-xl border border-border/60 bg-muted/25 p-4 text-sm leading-6 text-muted-foreground">
-                  <p>{organizer?.bio || tProfile('organizerBioFallback')}</p>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.15em]">{tProfile('industry')}</p>
-                      <p className="mt-1 text-foreground/90">{organizer?.industry || '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.15em]">{tProfile('city')}</p>
-                      <p className="mt-1 text-foreground/90">{organizer?.city || '-'}</p>
-                    </div>
-                  </div>
+              {/* Organizer bio */}
+              <div className="px-5 py-4 space-y-3">
+                <p
+                  className="text-sm leading-relaxed"
+                  style={{ color: '#5a3a20', fontFamily: 'var(--font-crimson)', fontStyle: 'italic' }}
+                >
+                  {organizer?.bio || tProfile('organizerBioFallback')}
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <MetaField label={tProfile('industry')} value={organizer?.industry || '-'} small />
+                  <MetaField label={tProfile('city')} value={organizer?.city || '-'} small />
                 </div>
+              </div>
 
-                {isLocked ? (
-                  <div className="rounded-xl border border-rose-200/80 bg-rose-50/90 px-4 py-3 text-sm text-rose-950">
-                    {tBounty('rank_required_detail')}
-                  </div>
-                ) : null}
+              {/* Locked warning */}
+              {isLocked ? (
+                <div
+                  className="mx-5 mb-4 rounded px-4 py-3 text-sm"
+                  style={{
+                    background: 'rgba(185,28,28,0.06)',
+                    border: '1px solid rgba(185,28,28,0.2)',
+                    color: '#7f1d1d',
+                    fontFamily: 'var(--font-crimson)',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  {tBounty('rank_required_detail')}
+                </div>
+              ) : null}
 
-                <div className="flex flex-wrap gap-3">
-                  {isOwner ? (
-                    <Link href={`/events/${event.id}/manage`}>
-                      <Button>{tEvents('manage')}</Button>
-                    </Link>
-                  ) : canApply ? (
-                    <form action={applyToEvent}>
-                      <input type="hidden" name="eventId" value={event.id} />
-                      <Button type="submit">{tBounty('claim')}</Button>
-                    </form>
-                  ) : registrationLabel ? (
-                    <Button disabled>{registrationLabel}</Button>
-                  ) : showLoginToApply ? (
-                    <Link href={`/auth/login?redirect=/events/${event.id}`}>
-                      <Button>{tBounty('claim')}</Button>
-                    </Link>
-                  ) : (
-                    <Button disabled>{tBounty('claim')}</Button>
-                  )}
-                  <Link href="/">
-                    <Button variant="outline">{tEvents('backToList')}</Button>
+              {/* Action buttons */}
+              <div
+                className="flex flex-wrap gap-3 px-5 py-4"
+                style={{ borderTop: '1px solid rgba(180,140,80,0.2)' }}
+              >
+                {isOwner ? (
+                  <Link href={`/events/${event.id}/manage`}>
+                    <GuildButton>{tEvents('manage')}</GuildButton>
                   </Link>
-                </div>
-              </CardContent>
-            </Card>
+                ) : canApply ? (
+                  <form action={applyToEvent}>
+                    <input type="hidden" name="eventId" value={event.id} />
+                    <GuildButton type="submit">{tBounty('claim')}</GuildButton>
+                  </form>
+                ) : registrationLabel ? (
+                  <GuildButton disabled>{registrationLabel}</GuildButton>
+                ) : showLoginToApply ? (
+                  <Link href={`/auth/login?redirect=/events/${event.id}`}>
+                    <GuildButton>{tBounty('claim')}</GuildButton>
+                  </Link>
+                ) : (
+                  <GuildButton disabled>{tBounty('claim')}</GuildButton>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </section>
     </main>
+  );
+}
+
+function MetaField({ label, value, small }: { label: string; value: string; small?: boolean }) {
+  return (
+    <div>
+      <p
+        className="text-[0.58rem] font-semibold uppercase tracking-[0.2em]"
+        style={{ color: '#8a7060', fontFamily: 'var(--font-cinzel)' }}
+      >
+        {label}
+      </p>
+      <p
+        className={small ? 'mt-0.5 text-sm' : 'mt-1 text-sm font-medium'}
+        style={{ color: '#3d2010', fontFamily: 'var(--font-crimson)' }}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function GuildButton({
+  children,
+  type = 'button',
+  disabled,
+}: {
+  children: React.ReactNode;
+  type?: 'button' | 'submit';
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type={type}
+      disabled={disabled}
+      className="rounded px-5 py-2 text-xs font-bold uppercase tracking-widest transition-all hover:brightness-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+      style={{
+        background: disabled ? 'rgba(138,112,96,0.15)' : 'linear-gradient(135deg, #c8922a, #a07020)',
+        color: disabled ? '#8a7060' : '#1e0e04',
+        border: disabled ? '1px solid rgba(138,112,96,0.2)' : 'none',
+        fontFamily: 'var(--font-cinzel)',
+        boxShadow: disabled ? 'none' : '0 2px 8px rgba(200,146,42,0.3)',
+      }}
+    >
+      {children}
+    </button>
   );
 }
