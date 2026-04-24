@@ -434,7 +434,7 @@ function HomeContent({
             <>
               {userRole === 'guest' && recommendedEvents.length > 0 ? (
                 <SectionHeader
-                  title={tBounty('allQuests') || tBounty('quest')}
+                  title={tBounty('allQuests')}
                   subtitle=""
                 />
               ) : null}

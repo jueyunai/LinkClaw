@@ -76,7 +76,7 @@ export function EventCard({ event, labels, hunterLevel, showManage = false }: Ev
   return (
     <div
       className={cn(
-        'group relative overflow-hidden rounded transition-all duration-300',
+        'group relative flex h-full flex-col overflow-hidden rounded transition-all duration-300',
         isLocked
           ? 'opacity-60 hover:opacity-75'
           : 'hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(61,31,10,0.18)]',
@@ -130,7 +130,7 @@ export function EventCard({ event, labels, hunterLevel, showManage = false }: Ev
       ) : null}
 
       {/* Card body */}
-      <div className="pl-4">
+      <div className="flex flex-1 flex-col pl-4">
         {/* Header */}
         <div className="px-4 pt-4 pb-3">
           <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -175,7 +175,7 @@ export function EventCard({ event, labels, hunterLevel, showManage = false }: Ev
         />
 
         {/* Meta grid */}
-        <div className="grid grid-cols-2 gap-0 px-4 py-3">
+        <div className="grid flex-1 grid-cols-2 gap-0 px-4 py-3">
           <MetaItem label={labels.eventDate} value={date} />
           <MetaItem label={labels.location} value={event.location} />
           <MetaItem label={labels.maxGuests} value={String(event.max_guests)} />
