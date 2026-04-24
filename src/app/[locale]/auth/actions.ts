@@ -1,6 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 import { cookies, headers } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { getAuthProvider, type AuthProviderId } from '@/lib/auth';
@@ -123,6 +124,7 @@ export async function login(formData: FormData) {
     redirect(`/${locale}/auth/login?error=${encodeURIComponent(errorMessage)}`);
   }
 
+  revalidatePath(`/${locale}`, 'layout');
   redirect(`/${locale}`);
 }
 
@@ -165,5 +167,6 @@ export async function logout() {
   const locale = await getLocale();
 
   await supabase.auth.signOut();
+  revalidatePath(`/${locale}`, 'layout');
   redirect(`/${locale}`);
 }
