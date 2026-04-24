@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { Database } from '@/types/database';
+import { ensureProfileExists } from '@/lib/auth/profile';
 import {
   exchangeCodeForTokens,
   getUserInfo,
@@ -168,6 +169,9 @@ export async function GET(request: Request) {
         userId: createData.user.id,
         guanchaUserId: userInfo.user_id,
       });
+
+      // 为新用户创建 profile（修复：OAuth 新用户缺少 profile 导致全站异常）
+      await ensureProfileExists(admin, createData.user.id, 'guest', userInfo.nickname);
 
       // 创建成功后登录
       const { error: retryError } = await supabase.auth.signInWithPassword({

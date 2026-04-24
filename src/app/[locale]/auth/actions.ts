@@ -5,7 +5,8 @@ import { cookies, headers } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { getAuthProvider, type AuthProviderId } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
-import type { Database, UserRole } from '@/types/database';
+import type { Database } from '@/types/database';
+import { ensureProfileExists } from '@/lib/auth/profile';
 import {
   generateCodeVerifier,
   generateCodeChallenge,
@@ -39,55 +40,12 @@ function buildAuthErrorRedirectPath(locale: string, error: string, redirectTo?: 
   return `/${locale}/auth/login?${params.toString()}`;
 }
 
-function getProfileRole(role: string | undefined): UserRole {
-  return role === 'organizer' ? 'organizer' : 'guest';
-}
-
-async function ensureProfileExists(
-  userId: string,
-  role: string | undefined,
-  displayName: string | undefined,
-) {
+async function ensureProfileExistsForUser(userId: string, role: string | undefined, displayName: string | undefined) {
   const supabase = await createClient();
-  const normalizedRole = getProfileRole(role);
-  const normalizedDisplayName = displayName?.trim() || 'LinkClaw User';
-
-  const { data: existingProfile, error: existingProfileError } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('id', userId)
-    .maybeSingle();
-
-  if (existingProfileError && !existingProfileError.message.toLowerCase().includes('no rows')) {
-    throw existingProfileError;
-  }
-
-  if (existingProfile) {
-    return;
-  }
-
-  const profileInsert: Database['public']['Tables']['profiles']['Insert'] = {
-    id: userId,
-    role: normalizedRole,
-    display_name: normalizedDisplayName,
-    bio: null,
-    industry: null,
-    city: null,
-    avatar_url: null,
-  };
-
-  const { error: insertError } = await supabase.from('profiles').insert(profileInsert as never);
-
-  if (
-    insertError &&
-    !insertError.message.toLowerCase().includes('duplicate') &&
-    !insertError.message.toLowerCase().includes('unique')
-  ) {
-    throw insertError;
-  }
+  await ensureProfileExists(supabase, userId, role, displayName);
 }
 
-export async function startAuth(providerId: AuthProviderId) {
+export async function startAuth(providerId: AuthProviderId, redirectTo?: string) {
   const locale = await getLocale();
   const provider = getAuthProvider(providerId);
 
@@ -140,6 +98,11 @@ export async function startAuth(providerId: AuthProviderId) {
     cookieStore.set('guancha_oauth_state', state, cookieOptions);
     cookieStore.set('guancha_oauth_locale', locale, cookieOptions);
 
+    // 保存 redirect 目标，供回调路由登录后跳转
+    if (redirectTo && redirectTo !== '/') {
+      cookieStore.set('guancha_oauth_redirect', redirectTo, cookieOptions);
+    }
+
     redirect(authorizeUrl);
   }
 
@@ -187,7 +150,7 @@ export async function register(formData: FormData) {
 
   if (data.user?.id) {
     try {
-      await ensureProfileExists(data.user.id, role, displayName);
+      await ensureProfileExistsForUser(data.user.id, role, displayName);
     } catch (profileError) {
       const message = profileError instanceof Error ? profileError.message : 'Profile setup failed';
       redirect(`/${locale}/auth/register?error=${encodeURIComponent(message)}`);

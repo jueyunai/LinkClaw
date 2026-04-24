@@ -9,16 +9,16 @@ export default async function LoginPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; redirect?: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const { error } = await searchParams;
+  const { error, redirect: redirectTo } = await searchParams;
 
-  return <LoginForm error={error} />;
+  return <LoginForm error={error} redirectTo={redirectTo} />;
 }
 
-export function LoginForm({ error }: { error?: string }) {
+export function LoginForm({ error, redirectTo }: { error?: string; redirectTo?: string }) {
   const t = useTranslations('auth');
   const providers = getVisibleAuthProviders();
 
@@ -121,7 +121,7 @@ export function LoginForm({ error }: { error?: string }) {
                   {t('otherLoginOptions')}
                 </p>
                 {providers.map((provider) => (
-                  <form key={provider.id} action={startAuth.bind(null, provider.id)}>
+                  <form key={provider.id} action={startAuth.bind(null, provider.id, redirectTo)}>
                     <button
                       type="submit"
                       disabled={!provider.enabled}

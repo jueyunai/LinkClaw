@@ -147,21 +147,37 @@ export default async function ManageEventPage({ params, searchParams }: ManageEv
   );
   const registeredGuestIds = [...new Set(allRegistrations.map((item) => item.guest_id))];
 
-  const { data: guests } = await supabase
+  // 只查询已报名 / 已邀请嘉宾的 profile，避免拉取全站用户
+  const { data: registeredGuestProfiles } = registeredGuestIds.length
+    ? await supabase
+        .from('profiles')
+        .select('id, display_name, bio, industry, city, role')
+        .in('id', registeredGuestIds)
+    : { data: [] };
+  const registeredGuestMap = new Map(
+    ((registeredGuestProfiles ?? []) as ManageGuest[]).map((g) => [g.id, g]),
+  );
+
+  // 推荐候选池：只取未报名的嘉宾，且限制数量避免全表扫描
+  let candidateQuery = supabase
     .from('profiles')
     .select('id, display_name, bio, industry, city, role')
     .eq('role', 'guest');
-  const allGuests = (guests ?? []) as ManageGuest[];
 
-  const guestMap = new Map(allGuests.map((guest) => [guest.id, guest]));
+  if (registeredGuestIds.length > 0) {
+    candidateQuery = candidateQuery.not('id', 'in', `(${registeredGuestIds.join(',')})`);
+  }
+
+  const { data: candidateGuests } = await candidateQuery.limit(200);
+  const allCandidates = (candidateGuests ?? []) as ManageGuest[];
 
   const recommendedGuests = getMockRecommendedGuestsForEvent(
     manageEvent,
-    allGuests.filter((guest) => !registeredGuestIds.includes(guest.id)),
+    allCandidates,
   )
     .map((recommendation) => ({
       recommendation,
-      guest: guestMap.get(recommendation.guestId) ?? null,
+      guest: allCandidates.find((g) => g.id === recommendation.guestId) ?? null,
     }))
     .filter(
       (
@@ -181,12 +197,12 @@ export default async function ManageEventPage({ params, searchParams }: ManageEv
 
   const invitedGuests = invitedRegistrations.map((registration) => ({
     ...registration,
-    guest: guestMap.get(registration.guest_id) ?? null,
+    guest: registeredGuestMap.get(registration.guest_id) ?? null,
   }));
 
   const appliedGuests = appliedRegistrations.map((registration) => ({
     ...registration,
-    guest: guestMap.get(registration.guest_id) ?? null,
+    guest: registeredGuestMap.get(registration.guest_id) ?? null,
   }));
 
   return (
