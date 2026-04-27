@@ -141,7 +141,7 @@ export function RegisterForm({ error }: { error?: string }) {
                   {t('otherRegisterOptions')}
                 </p>
                 {providers.map((provider) => (
-                  <form key={provider.id} action={startAuth.bind(null, provider.id)}>
+                  <form key={provider.id} action={startAuth.bind(null, provider.id, undefined)}>
                     <button
                       type="submit"
                       disabled={!provider.enabled}
