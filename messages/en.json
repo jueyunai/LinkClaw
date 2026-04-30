@@ -25,7 +25,8 @@
     "liveBoard": "LinkClaw Live Board",
     "profilePromptTitle": "Complete your profile for sharper quest scouting",
     "profilePromptDescription": "Add your bio, industry, and city so the guild can match you with more relevant quests and direct commissions.",
-    "profilePromptAction": "Complete profile"
+    "profilePromptAction": "Complete profile",
+    "profileUpdatedSuccess": "Hunter profile updated — recommendations will be more accurate"
   },
   "auth": {
     "loginTitle": "Enter LinkClaw",

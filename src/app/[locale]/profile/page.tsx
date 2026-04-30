@@ -31,7 +31,7 @@ export default async function ProfilePage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ error?: string; success?: string }>;
+  searchParams: Promise<{ error?: string; success?: string; from?: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -52,7 +52,9 @@ export default async function ProfilePage({
     .single();
   const profileValues = profile as ProfileFormValues | null;
 
-  const { error, success } = await searchParams;
+  const { error, success, from } = await searchParams;
+  // Normalize from parameter: only accept 'home' | 'center'
+  const normalizedFrom = from === 'home' ? 'home' : 'center';
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -61,6 +63,7 @@ export default async function ProfilePage({
         profile={profileValues}
         error={error}
         success={success === 'true'}
+        from={normalizedFrom}
       />
     </div>
   );
@@ -70,10 +73,12 @@ export function ProfileForm({
   profile,
   error,
   success,
+  from = 'center',
 }: {
   profile: ProfileFormValues | null;
   error?: string;
   success?: boolean;
+  from?: 'home' | 'center';
 }) {
   const t = useTranslations('profile');
   const tHunter = useTranslations('hunter');
@@ -108,6 +113,7 @@ export function ProfileForm({
           </div>
         ) : null}
         <form action={updateProfile} className="space-y-4">
+          <input type="hidden" name="from" value={from} />
           <div className="space-y-2">
             <Label htmlFor="displayName">{t('displayName')}</Label>
             <Input

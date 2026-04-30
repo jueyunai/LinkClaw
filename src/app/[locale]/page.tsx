@@ -1,6 +1,7 @@
 import { useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
+import { SearchParamsToast } from '@/components/features/search-params-toast';
 import { EventCard } from '@/components/features/event-card';
 import { SpriteBubble } from '@/components/features/sprite-bubble';
 import { Badge } from '@/components/ui/badge';
@@ -37,11 +38,14 @@ function getPatrolMessageKey(hour: number) {
 
 export default async function HomePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ profileUpdated?: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const { profileUpdated } = await searchParams;
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -84,6 +88,7 @@ export default async function HomePage({
       recommendations={recommendations}
       shouldShowProfilePrompt={shouldShowProfilePrompt}
       hunterLevel={hunterLevel}
+      profileUpdated={profileUpdated === 'true'}
     />
   );
 }
@@ -95,6 +100,7 @@ function HomeContent({
   recommendations,
   shouldShowProfilePrompt,
   hunterLevel,
+  profileUpdated,
 }: {
   events: HomeEvent[];
   userRole: UserRole | null;
@@ -102,6 +108,7 @@ function HomeContent({
   recommendations: EventRecommendation[];
   shouldShowProfilePrompt: boolean;
   hunterLevel?: HunterLevel;
+  profileUpdated?: boolean;
 }) {
   const tHome = useTranslations('home');
   const tEvents = useTranslations('events');
@@ -147,6 +154,12 @@ function HomeContent({
       className="min-h-[calc(100vh-4rem)]"
       style={{ background: 'linear-gradient(180deg, #f5ead6 0%, #f8f2e4 40%, #f5ead6 100%)' }}
     >
+      {profileUpdated ? (
+        <SearchParamsToast
+          success="profileUpdated"
+          successMessages={{ profileUpdated: tHome('profileUpdatedSuccess') }}
+        />
+      ) : null}
       {/* ═══════════════════════════════════════════════
           GUILD ANNOUNCEMENT BOARD — Hero Header
       ═══════════════════════════════════════════════ */}
@@ -313,7 +326,7 @@ function HomeContent({
                   {tHome('profilePromptDescription')}
                 </p>
               </div>
-              <Link href="/profile">
+              <Link href="/profile?from=home">
                 <button
                   className="shrink-0 rounded px-4 py-2 text-xs font-semibold uppercase tracking-widest transition-all hover:brightness-110"
                   style={{

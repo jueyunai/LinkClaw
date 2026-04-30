@@ -25,7 +25,8 @@
     "liveBoard": "LinkClaw 实时活动板",
     "profilePromptTitle": "完善画像，获得更精准的活动推荐",
     "profilePromptDescription": "补充你的自我介绍、行业和城市信息，帮助系统更准确地匹配活动与邀请。",
-    "profilePromptAction": "去完善画像"
+    "profilePromptAction": "去完善画像",
+    "profileUpdatedSuccess": "猎人档案已更新，推荐将更加精准"
   },
   "auth": {
     "loginTitle": "登录 LinkClaw",
