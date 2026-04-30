@@ -37,7 +37,7 @@ export default async function MyEventsPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ error?: string; success?: string }>;
+  searchParams: Promise<{ error?: string; success?: string; profileUpdated?: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -62,7 +62,9 @@ export default async function MyEventsPage({
     redirect(`/${locale}`);
   }
 
-  const { error, success } = await searchParams;
+  const { error, success: rawSuccess, profileUpdated } = await searchParams;
+  // Map profileUpdated=true to success=profileUpdated for SearchParamsToast
+  const success = profileUpdated === 'true' ? 'profileUpdated' : rawSuccess;
 
   if (currentProfile.role === 'organizer') {
     const { data: events } = await supabase
@@ -218,7 +220,7 @@ function OrganizerEventsContent({
             ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <Link href="/profile">
+            <Link href="/profile?from=center">
               <Button variant="outline" size="sm">{tMyEvents('editProfile')}</Button>
             </Link>
             <Link href="/events/new">
@@ -329,6 +331,7 @@ function GuestEventsContent({
   success?: string;
 }) {
   const tMyEvents = useTranslations('myEvents');
+  const tProfile = useTranslations('profile');
 
   const applied = registrations.filter((item) => item.type === 'applied');
   const invited = registrations.filter((item) => item.type === 'invited');
@@ -368,7 +371,7 @@ function GuestEventsContent({
             ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <Link href="/profile">
+            <Link href="/profile?from=center">
               <Button variant="outline" size="sm">{tMyEvents('editProfile')}</Button>
             </Link>
           </div>
@@ -380,6 +383,7 @@ function GuestEventsContent({
           successMessages={{
             invitation_accepted: tMyEvents('invitationAccepted'),
             invitation_rejected: tMyEvents('invitationRejected'),
+            profileUpdated: tProfile('saveSuccess'),
           }}
         />
 
