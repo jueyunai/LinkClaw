@@ -3,6 +3,8 @@
 import { redirect } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
+import { sendEmail } from '@/lib/notifications/email';
+import { applicationAcceptedEmail, invitationReceivedEmail } from '@/lib/notifications/templates';
 import type { BountyRank, Database, HunterLevel, UserRole } from '@/types/database';
 
 async function requireOrganizer(locale: string) {
@@ -199,6 +201,44 @@ export async function inviteGuest(formData: FormData) {
     redirect(`/${locale}/events/${eventId}/manage?error=${encodeURIComponent(message)}`);
   }
 
+  // Fire-and-forget: send invitation email to the guest
+  void (async () => {
+    try {
+      const { data: guestData } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', guestId)
+        .single();
+      const { data: guestAuth } = await supabase.auth.admin.getUserById(guestId).catch(() => ({ data: null }));
+      const { data: organizerProfile } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', user.id)
+        .single();
+      const { data: eventData } = await supabase
+        .from('events')
+        .select('title')
+        .eq('id', eventId)
+        .single();
+
+      const guestEmail = (guestAuth as { user?: { email?: string } })?.user?.email;
+      if (guestEmail && !guestEmail.includes('@oauth.linkclaw.app')) {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+        const template = invitationReceivedEmail({
+          locale,
+          hunterName: (guestData as { display_name: string } | null)?.display_name ?? 'Hunter',
+          questTitle: (eventData as { title: string } | null)?.title ?? '',
+          commissionerName: (organizerProfile as { display_name: string } | null)?.display_name ?? 'Commissioner',
+          matchReason: aiMatchReason,
+          questUrl: `${appUrl}/${locale}/events/${eventId}`,
+        });
+        await sendEmail({ to: guestEmail, ...template });
+      }
+    } catch (err) {
+      console.error('[Notification] Failed to send invitation email:', err);
+    }
+  })();
+
   redirect(`/${locale}/events/${eventId}/manage?success=invited`);
 }
 
@@ -234,6 +274,47 @@ export async function respondToApplication(formData: FormData) {
 
   if (error) {
     redirect(`/${locale}/events/${eventId}/manage?error=${encodeURIComponent(error.message)}`);
+  }
+
+  // Fire-and-forget: send email when application is accepted
+  if (status === 'accepted') {
+    void (async () => {
+      try {
+        const { data: registration } = await supabase
+          .from('registrations')
+          .select('guest_id')
+          .eq('id', registrationId)
+          .single();
+        const guestId = (registration as { guest_id: string } | null)?.guest_id;
+        if (!guestId) return;
+
+        const { data: guestData } = await supabase
+          .from('profiles')
+          .select('display_name')
+          .eq('id', guestId)
+          .single();
+        const { data: guestAuth } = await supabase.auth.admin.getUserById(guestId).catch(() => ({ data: null }));
+        const { data: eventData } = await supabase
+          .from('events')
+          .select('title')
+          .eq('id', eventId)
+          .single();
+
+        const guestEmail = (guestAuth as { user?: { email?: string } })?.user?.email;
+        if (guestEmail && !guestEmail.includes('@oauth.linkclaw.app')) {
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+          const template = applicationAcceptedEmail({
+            locale,
+            hunterName: (guestData as { display_name: string } | null)?.display_name ?? 'Hunter',
+            questTitle: (eventData as { title: string } | null)?.title ?? '',
+            questUrl: `${appUrl}/${locale}/events/${eventId}`,
+          });
+          await sendEmail({ to: guestEmail, ...template });
+        }
+      } catch (err) {
+        console.error('[Notification] Failed to send acceptance email:', err);
+      }
+    })();
   }
 
   const success = status === 'accepted' ? 'application_accepted' : 'application_rejected';
