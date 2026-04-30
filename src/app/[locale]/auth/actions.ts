@@ -29,6 +29,25 @@ async function getLoginErrorMessage(message: string) {
   return message;
 }
 
+async function getRegisterErrorMessage(message: string) {
+  const t = await getTranslations('auth.errors');
+
+  if (message.includes('already registered') || message.includes('already been registered')) {
+    return t('emailAlreadyRegistered');
+  }
+
+  if (message.includes('password') && message.includes('at least')) {
+    return t('passwordTooShort');
+  }
+
+  if (message.includes('valid email') || message.includes('invalid email')) {
+    return t('invalidEmail');
+  }
+
+  // Fallback: generic registration error (don't expose raw Supabase messages)
+  return t('registrationFailed');
+}
+
 function buildAuthErrorRedirectPath(locale: string, error: string, redirectTo?: string) {
   const params = new URLSearchParams({
     error,
@@ -147,7 +166,8 @@ export async function register(formData: FormData) {
   });
 
   if (error) {
-    redirect(`/${locale}/auth/register?error=${encodeURIComponent(error.message)}`);
+    const errorMessage = await getRegisterErrorMessage(error.message);
+    redirect(`/${locale}/auth/register?error=${encodeURIComponent(errorMessage)}`);
   }
 
   if (data.user?.id) {

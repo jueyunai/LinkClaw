@@ -50,7 +50,11 @@
       "providerNotReady": "This login method is still being prepared.",
       "authCancelled": "Login cancelled.",
       "invalidCredentials": "Invalid email or password.",
-      "emailNotConfirmed": "Your email is not verified yet. Please check your inbox and click the verification link before logging in."
+      "emailNotConfirmed": "Your email is not verified yet. Please check your inbox and click the verification link before logging in.",
+      "emailAlreadyRegistered": "This email is already registered. Please log in instead.",
+      "passwordTooShort": "Password is too short. Please use a longer password.",
+      "invalidEmail": "Please enter a valid email address.",
+      "registrationFailed": "Registration failed. Please try again later."
     },
     "providers": {
       "email": {

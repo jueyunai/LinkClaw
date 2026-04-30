@@ -50,7 +50,11 @@
       "providerNotReady": "该登录方式正在准备中。",
       "authCancelled": "登录已取消。",
       "invalidCredentials": "邮箱或密码错误。",
-      "emailNotConfirmed": "邮箱尚未验证，请先检查收件箱并点击验证邮件中的链接后再登录。"
+      "emailNotConfirmed": "邮箱尚未验证，请先检查收件箱并点击验证邮件中的链接后再登录。",
+      "emailAlreadyRegistered": "该邮箱已注册，请直接登录。",
+      "passwordTooShort": "密码长度不足，请设置更长的密码。",
+      "invalidEmail": "请输入有效的邮箱地址。",
+      "registrationFailed": "注册失败，请稍后重试。"
     },
     "providers": {
       "email": {
