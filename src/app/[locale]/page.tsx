@@ -1,6 +1,7 @@
 import { useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
+import { isProfileComplete } from '@/lib/profile-completeness';
 import { SearchParamsToast } from '@/components/features/search-params-toast';
 import { EventCard } from '@/components/features/event-card';
 import { SpriteBubble } from '@/components/features/sprite-bubble';
@@ -21,13 +22,6 @@ interface HomeEvent {
   target_audience: string | null;
   organizer_id: string;
   bounty_rank: BountyRank;
-}
-
-function shouldPromptProfileCompletion(
-  profile: Pick<Profile, 'bio' | 'industry' | 'city' | 'display_name' | 'role'> | null,
-) {
-  if (!profile) return true;
-  return !profile.bio?.trim() || !profile.industry?.trim() || !profile.city?.trim();
 }
 
 function getPatrolMessageKey(hour: number) {
@@ -78,7 +72,7 @@ export default async function HomePage({
           hunterLevel,
         )
       : [];
-  const shouldShowProfilePrompt = user !== null && shouldPromptProfileCompletion(profile);
+  const shouldShowProfilePrompt = user !== null && !isProfileComplete(profile);
 
   return (
     <HomeContent
