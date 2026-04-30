@@ -30,6 +30,23 @@ export async function updateHunterLevel(formData: FormData) {
   }
 
   const admin = createAdminClient();
+
+  // Check that the target user exists and is a guest before updating
+  const { data: targetProfile, error: lookupError } = await admin
+    .from('profiles')
+    .select('id')
+    .eq('id', targetUserId)
+    .eq('role', 'guest')
+    .maybeSingle();
+
+  if (lookupError) {
+    redirect(`/${locale}/admin/hunters?error=${encodeURIComponent(lookupError.message)}`);
+  }
+
+  if (!targetProfile) {
+    redirect(`/${locale}/admin/hunters?error=${encodeURIComponent('目标猎人不存在')}`);
+  }
+
   const { error } = await admin
     .from('profiles')
     .update({ hunter_level: newLevel } as never)
